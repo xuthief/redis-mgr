@@ -14,20 +14,24 @@ class BenchThread(threading.Thread):
         self.redis._bench(self.cmd)
 
 class Benchmark():
-    def nbench(self):
+    def nbench(self, cnt=100000):
         '''
         run benchmark against nutcracker
         '''
         for s in self.all_nutcracker:
-            cmd = TT('bin/redis-benchmark --csv -h $host -p $port -r 100000 -t set,get -n 10000000 -c 100 ', s.args)
+            args = copy.deepcopy(s.args)
+            args['cnt'] = cnt
+            cmd = TT('bin/redis-benchmark --csv -h $host -p $port -r 100000 -t set,get -n $cnt -c 100 ', args)
             BenchThread(random.choice(self._active_masters()), cmd).start()
 
-    def mbench(self):
+    def mbench(self, cnt=100000):
         '''
         run benchmark against redis master
         '''
         for s in self._active_masters():
-            cmd = TT('bin/redis-benchmark --csv -h $host -p $port -r 100000 -t set,get -n 10000000 -c 100 ', s.args)
+            args = copy.deepcopy(s.args)
+            args['cnt'] = cnt
+            cmd = TT('bin/redis-benchmark --csv -h $host -p $port -r 100000 -t set,get -n $cnt -c 100 ', args)
             BenchThread(s, cmd).start()
 
     def stopbench(self):
@@ -41,7 +45,6 @@ class Monitor():
         
         for i in xrange(1000*1000):
             if i%10 == 0:
-                self.all_nutcracker
                 header = common.to_blue(' '.join(['%5s' % s.args['port'] for s in self.all_nutcracker]))
                 print header
 

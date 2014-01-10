@@ -16,7 +16,7 @@ CLUSTER='cluster0'
 
 #test bench
 ./bin/deploy.py $CLUSTER mlive_qps &
-./bin/deploy.py $CLUSTER nbench
+./bin/deploy.py $CLUSTER nbench 1000
 pkill -f './bin/deploy.py'
 
 #test failover
