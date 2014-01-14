@@ -11,7 +11,7 @@ class BenchThread(threading.Thread):
         self.redis = redis
         self.cmd = cmd
     def run(self):
-        self.redis._bench(self.cmd)
+        self.redis._sshcmd(self.cmd)
 
 class Benchmark():
     def nbench(self, cnt=100000):

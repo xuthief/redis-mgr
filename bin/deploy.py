@@ -101,7 +101,7 @@ class Base:
         logging.info('log of %s' % self)
         print self._run(self._remote_cmd(cmd))
 
-    def _bench(self, cmd):
+    def _sshcmd(self, cmd):
         '''
         run a benchmark cmd on this remote machine
         '''
@@ -539,6 +539,11 @@ class Cluster(object, Monitor, Benchmark):
         do rdb in all redis instance, 
         '''
         self._rediscmd('BGSAVE', conf.RDB_SLEEP_TIME)
+
+        t = common.format_time(None, '%Y%m%d%H')
+        cmd = 'cp data/dump.rdb data/dump.rdb.%s' % t
+        for s in self.all_redis:
+            s._sshcmd(cmd)
 
     def aof_rewrite(self):
         '''
