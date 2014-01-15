@@ -162,7 +162,7 @@ class Monitor():
         }
 
         DIR = os.path.join(PWD, '../data')
-        STAT_LOG = os.path.join(DIR, 'statlog.%s' % common.format_time(now, '%Y%m%d%H'))
+        STAT_LOG = os.path.join(DIR, 'statlog.%s.%s' % (self.args['cluster_name'], common.format_time(now, '%Y%m%d%H')))
         common.system('mkdir -p %s' % DIR, None)
 
         fout = file(STAT_LOG, 'a+')

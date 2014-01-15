@@ -180,7 +180,7 @@ enable auto-complete
 gen_conf
 ========
 
-use the config::
+on ``bin/gen_conf.py`` use this ::
 
     BASEDIR = '/tmp/r'
     HOSTS = [
@@ -220,7 +220,23 @@ TODO
       nohup ./bin/deploy.py cluster0 scheduler  &
 
    we use telnetlib instead
-
+5. migrate of redis instance
 
 https://github.com/idning/redis-mgr
+
+Graph
+=====
+
+
+- redis
+    - mlive_mem       
+    - mlive_qps       
+- twemproxy
+    - nlive_request   
+    - nlive_forward_error
+    - nlive_inqueue   
+    - nlive_outqueue  
+
+- for cluster and for each instance
+- support more than one cluster.
 
