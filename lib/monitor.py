@@ -42,7 +42,7 @@ class Benchmark():
 
 class Monitor():
     def _live_nutcracker(self, what, format_func = lambda x:x):
-        
+
         for i in xrange(1000*1000):
             if i%10 == 0:
                 header = common.to_blue(' '.join(['%5s' % s.args['port'] for s in self.all_nutcracker]))
@@ -55,7 +55,7 @@ class Monitor():
                 return format_func(info[what])
 
             print ' '.join([ '%5s' % get_v(s) for s in self.all_nutcracker]) + '\t' + common.format_time(None, '%X')
-            
+
             time.sleep(1)
 
     def _live_redis(self, what, format_func = lambda x:x):
@@ -68,7 +68,7 @@ class Monitor():
                 old_masters_list = [str(m) for m in old_masters]
                 masters_list = [str(m) for m in masters]
 
-                if masters_list == old_masters_list: 
+                if masters_list == old_masters_list:
                     header = common.to_blue(' '.join(['%5s' % s.args['port'] for s in masters]))
                 else:
                     header = common.to_red(' '.join(['%5s' % s.args['port'] for s in masters]))
@@ -79,10 +79,10 @@ class Monitor():
                     return '-'
                 return format_func(info[what])
             print ' '.join([ '%5s' % get_v(s) for s in masters]) + '\t' + common.format_time(None, '%X')
-            
+
             time.sleep(1)
 
-    def mlive_mem(self):
+    def live_master_mem(self):
         '''
         monitor used_memory_human:1.53M of master
         '''
@@ -93,39 +93,74 @@ class Monitor():
                 return s
         self._live_redis('used_memory_human', format)
 
-    def mlive_qps(self):
+    def live_master_qps(self):
         '''
         monitor instantaneous_ops_per_sec of master
         '''
         self._live_redis('instantaneous_ops_per_sec')
 
-    def nlive_request(self):
+    def live_nutcracker_request(self):
         '''
         monitor nutcracker requests/s
         '''
         self._live_nutcracker('requests_INC')
 
-    def nlive_forward_error(self):
+    def live_nutcracker_forward_error(self):
         '''
         monitor nutcracker forward_error/s
         '''
         self._live_nutcracker('forward_error_INC')
 
-    def nlive_inqueue(self):
+    def live_nutcracker_inqueue(self):
         '''
         monitor nutcracker forward_error/s
         '''
         self._live_nutcracker('in_queue')
 
-    def nlive_outqueue(self):
+    def live_nutcracker_outqueue(self):
         '''
         monitor nutcracker forward_error/s
         '''
         self._live_nutcracker('out_queue')
 
+    def live_all(self):
+        '''
+        all monitor info of the cluster
+        '''
+        pass
+
+    def _print_statlog_line(self, line):
+        ret = {}
+        js = common.json_decode(line)
+
+        ret['timestr'] = js['timestr']
+        def sum_redis(what):
+            val = 0
+            for k,v in js['infos'].items():
+                if k.startswith('[redis') and what in v:
+                    #print k, v['instantaneous_ops_per_sec']
+                    val += int(v[what])
+            return val
+
+        ret['qps'] = sum_redis('instantaneous_ops_per_sec')
+        ret['mem'] = sum_redis('used_memory_peak')/1024/1024
+
+        print TT('$timestr ${qps}q/s ${mem}MB', ret)
+
+    def history(self):
+        '''
+        history monitor info of the cluster
+        '''
+        files = glob.glob('data/statlog.*')
+        files.sort()
+        for f in files[-24:]:
+            for line in file(f):
+                self._print_statlog_line(line)
+
+
     def _monitor(self):
         '''
-        - redis 
+        - redis
             - connected_clients
             - mem
             - rdb_last_bgsave_time_sec:0
@@ -140,11 +175,11 @@ class Monitor():
             - server_err
             - in_queue/out_queue
 
-        save this to a file , in one line: 
+        save this to a file , in one line:
         {
-            'ts': xxx, 
-            'timestr': xxx, 
-            'cluster': xxx, 
+            'ts': xxx,
+            'timestr': xxx,
+            'cluster': xxx,
             'infos': {
                 '[redis:host:port]': {info}
                 '[redis:host:port]': {info}
@@ -160,8 +195,8 @@ class Monitor():
         self._check_warning(infos)
 
         ret = {
-            'ts': now, 
-            'timestr': common.format_time_to_min(now), 
+            'ts': now,
+            'timestr': common.format_time_to_min(now),
             'cluster': self.args['cluster_name'],
             'infos': infos,
         }
@@ -229,7 +264,7 @@ class Monitor():
             for k, expr in nutcracker_cluster_spec.items():
                 if k in info and not match(info[k], expr):
                     logging.warn('%s.%s is:\t %s, not in %s' % (node, k, info[k], expr))
-        
+
 
         for node, info in infos.items():
             if strstr(node, 'redis'):
@@ -248,9 +283,9 @@ class Monitor():
     def scheduler(self):
         '''
         start following threads:
-            - failover 
+            - failover
             - cron of monitor
-            - cron of rdb 
+            - cron of rdb
             = graph web server
         '''
         thread.start_new_thread(self.failover, ())

@@ -14,6 +14,7 @@ import redis
 import random
 import redis
 import json
+import glob
 
 from collections import defaultdict
 from argparse import RawTextHelpFormatter
@@ -25,7 +26,7 @@ from string import Template
 # we have to do this here, so that lib/monitor.py can use conf.xxx
 # import config in conf/REDIS_DEPLOY_CONFIG.py
 if 'REDIS_DEPLOY_CONFIG' not in os.environ:
-    logging.error('please export REDIS_DEPLOY_CONFIG=conf')
+    logging.error('please export REDIS_DEPLOY_CONFIG=conf && . ./bin/active')
     exit(1)
 config_name = os.environ['REDIS_DEPLOY_CONFIG']
 conf = __import__(config_name, globals(), locals(), [], 0)        #import config_module

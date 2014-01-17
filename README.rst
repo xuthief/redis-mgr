@@ -7,7 +7,7 @@ this script will deploy a redis cluster in ``10 minutes`` with:
 - redis-sentinel
 - twemproxy
 
-you can deploy/start/stop/run_rediscmd/get status/reconfig proxy ... 
+you can deploy/start/stop/run_rediscmd/get status/reconfig proxy ...
 
 config
 ------
@@ -42,7 +42,7 @@ this will gen ``sentinel``  config::
     sentinel down-after-milliseconds  cluster0-20000 60000
     sentinel failover-timeout cluster0-20000 180000
     sentinel parallel-syncs cluster0-20000 1
-            
+
     sentinel monitor cluster0-20001 127.0.0.5 20001 2
     sentinel down-after-milliseconds  cluster0-20001 60000
     sentinel failover-timeout cluster0-20001 180000
@@ -66,7 +66,7 @@ and ``twemproxy`` config::
         - 127.0.0.5:20000:1 cluster0-20000
         - 127.0.0.5:20001:1 cluster0-20001
 
-the name ``cluster0-20000`` is named by the orig master, 
+the name ``cluster0-20000`` is named by the orig master,
 if slave use a different port, the server ``host:port``  of ``cluster0-20000`` can be ``127.0.0.5:20000`` or ``127.0.0.5:21000``
 
 usage
@@ -82,7 +82,7 @@ choose your config filename::
     usage: deploy.py [-h] [-v] [-o LOGFILE] clustername op [cmd]
 
     positional arguments:
-      clustername           cluster target 
+      clustername           cluster target
       op                    aof_rewrite     : None
                             deploy          : deploy the binarys and config file (redis/sentinel/nutcracker) in this cluster
                             kill            : kill all instance(redis/sentinel/nutcracker) in this cluster
@@ -130,9 +130,9 @@ run cmd on each master::
     2013-12-24 13:51:39,748 [MainThread] [INFO] [RedisServer:127.0.0.5:20000]: get "hello"
     [RedisServer:127.0.0.5:20000] xxxxx
     2013-12-24 13:51:39,752 [MainThread] [INFO] [RedisServer:127.0.0.5:20001]: get "hello"
-    [RedisServer:127.0.0.5:20001] 
+    [RedisServer:127.0.0.5:20001]
     2013-12-24 13:51:39,756 [MainThread] [INFO] [RedisServer:127.0.0.5:20002]: get "hello"
-    [RedisServer:127.0.0.5:20002] 
+    [RedisServer:127.0.0.5:20002]
     2013-12-24 13:51:39,760 [MainThread] [INFO] [RedisServer:127.0.0.5:20003]: get "hello"
     [RedisServer:127.0.0.5:20003] world
 
@@ -174,7 +174,7 @@ enable auto-complete
     $ . ./bin/active
 
     ning@ning-laptop ~/idning-github/redis-mgr$ ./bin/deploy.py cluster0 r<TAB>
-    randomkill     rdb            reconfigproxy  rediscmd       
+    randomkill     rdb            reconfigproxy  rediscmd
 
 
 gen_conf
@@ -221,22 +221,24 @@ TODO
 
    we use telnetlib instead
 5. migrate of redis instance
-
-https://github.com/idning/redis-mgr
+6. a live command for cluster overview info(qps, mem, hit-rate)
 
 Graph
 =====
 
 
 - redis
-    - mlive_mem       
-    - mlive_qps       
+    - mlive_mem
+    - mlive_qps
 - twemproxy
-    - nlive_request   
+    - nlive_request
     - nlive_forward_error
-    - nlive_inqueue   
-    - nlive_outqueue  
+    - nlive_inqueue
+    - nlive_outqueue
 
 - for cluster and for each instance
 - support more than one cluster.
+- do not need database
+
+https://github.com/idning/redis-mgr
 
