@@ -87,7 +87,10 @@ class Monitor():
         monitor used_memory_human:1.53M of master
         '''
         def format(s):
-            return re.sub('\.\d+', '', s) # 221.53M=>221M
+            if strstr(s, 'M'):
+                return re.sub('\.\d+', '', s) # 221.53M=>221M
+            else:
+                return s
         self._live_redis('used_memory_human', format)
 
     def mlive_qps(self):
