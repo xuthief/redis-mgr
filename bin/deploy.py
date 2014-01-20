@@ -274,7 +274,7 @@ class NutCracker(Base):
         self.args['logfile']     = TT('$path/log/nutcracker.log', self.args)
         self.args['status_port'] = self.args['port'] + 1000
 
-        self.args['startcmd']    = TT('bin/nutcracker -d -c $conf -o $logfile -p $pidfile -s $status_port', self.args)
+        self.args['startcmd']    = TT('bin/nutcracker -d -c $conf -o $logfile -p $pidfile -s $status_port -v 4', self.args)
         self.args['runcmd']      = self.args['startcmd']
         self._last_info = None
 
@@ -321,30 +321,30 @@ $cluster_name:
         "timestamp": 1389231960,                        | timestamp_INC
         ....                                            |
         "cluster0": {                                   |
-            "client_connections": 100,                  | 
+            "client_connections": 100,                  |
             "client_eof": 500,                          |
             "forward_error": 0,                         | calc forward_error_INC
             "client_err": 0,                            | calc client_err_INC
-            "fragments": 0,                             |  
-            "server_ejects": 0,                         |  
+            "fragments": 0,                             |
+            "server_ejects": 0,                         |
                                                         | add global in_queue/out_queue/
                                                         | add global requests/responses/
                                                         | add global server_timedout/server_err
                                                         | calc requests_INC responses_INC
                                                         | calc server_timedout_INC server_err_INC
-            "cluster0-20001": {       #a backend        | 
-                "server_timedout": 0,                   | 
-                "server_err": 0,                        | 
-                "responses": 125406,                    | 
-                "response_bytes": 828478,               | 
-                "in_queue_bytes": 0,                    | 
-                "server_connections": 1,                | 
-                "request_bytes": 5189724,               | 
-                "out_queue": 0,                         | 
-                "server_eof": 0,                        | 
-                "requests": 125406,                     | 
-                "in_queue": 0,                          | 
-                "out_queue_bytes": 0                    | 
+            "cluster0-20001": {       #a backend        |
+                "server_timedout": 0,                   |
+                "server_err": 0,                        |
+                "responses": 125406,                    |
+                "response_bytes": 828478,               |
+                "in_queue_bytes": 0,                    |
+                "server_connections": 1,                |
+                "request_bytes": 5189724,               |
+                "out_queue": 0,                         |
+                "server_eof": 0,                        |
+                "requests": 125406,                     |
+                "in_queue": 0,                          |
+                "out_queue_bytes": 0                    |
             },                                          |
         '''
         info = self._raw_info_dict()
@@ -536,7 +536,7 @@ class Cluster(object, Monitor, Benchmark):
 
     def rdb(self):
         '''
-        do rdb in all redis instance, 
+        do rdb in all redis instance,
         '''
         self._rediscmd('BGSAVE', conf.RDB_SLEEP_TIME)
 
@@ -629,7 +629,7 @@ def gen_op_help():
     lines = file('bin/deploy.py').readlines() + file('lib/monitor.py').readlines()
     def rank(x):
         name, func = x
-        t = 'def ' + name 
+        t = 'def ' + name
         for i in range(len(lines)):
             if strstr(lines[i], t):
                 return i

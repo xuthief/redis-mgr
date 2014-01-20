@@ -158,7 +158,7 @@ class Monitor():
         '''
         history monitor info of the cluster
         '''
-        files = glob.glob('data/statlog.*')
+        files = glob.glob('data/%s/statlog.*'% self.args['cluster_name'])
         files.sort()
         for f in files[-24:]:
             for line in file(f):
@@ -207,8 +207,8 @@ class Monitor():
             'infos': infos,
         }
 
-        DIR = os.path.join(PWD, '../data')
-        STAT_LOG = os.path.join(DIR, 'statlog.%s' % (common.format_time(now, '%Y%m%d%H')))
+        DIR = os.path.join(PWD, '../data/%s' % self.args['cluster_name'])
+        STAT_LOG = os.path.join(DIR, 'statlog.%s' % (common.format_time(now, '%Y%m%d%H'), ))
         common.system('mkdir -p %s' % DIR, None)
 
         fout = file(STAT_LOG, 'a+')
@@ -278,13 +278,38 @@ class Monitor():
             if strstr(node, 'nutcracker'):
                 check_nutcracker(node, info)
 
-    def monitor(self):
-        '''
-        a long time running monitor task, write WARN log on bad things happend
-        '''
-        while True:
-            self._monitor()
-            time.sleep(60)
+    #def monitor(self):
+        #'''
+        #a long time running monitor task, write WARN log on bad things happend
+        #'''
+        #while True:
+            #self._monitor()
+            #time.sleep(60)
+
+    def upgrade_nutcracker(self):
+        masters = self._active_masters()
+
+        i = 0
+        pause_cnt = len(self.all_nutcracker) / 3
+
+        for m in self.all_nutcracker:
+            m.reconfig(masters)
+            if i % pause_cnt == 0:
+                while 'yes' != raw_input('do you want to continue yes/ctrl-c: '):
+                    pass
+            i+=1
+
+        logging.notice('reconfig all nutcracker Done!')
+
+    def log_rotate(self):
+        t = common.format_time(None, '%Y%m%d%H')
+        for m in self.all_nutcracker:
+            cmd = 'mv log/nutcracker.log log/nutcracker.log.%s' % t
+            m._sshcmd(cmd)
+            cmd = "pkill -HUP -f '%s'" % m.args['runcmd']
+            m._sshcmd(cmd)
+            cmd = "find log/ -name 'nutcracker.log.2*' -amin +1440 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null" # 1440 min = 1 day
+            m._sshcmd(cmd)
 
     def scheduler(self):
         '''
