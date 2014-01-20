@@ -131,13 +131,20 @@ class Monitor():
 
     def _print_statlog_line(self, line):
         ret = {}
-        js = common.json_decode(line)
+        try:
+            js = common.json_decode(line)
+        except Exception, e:
+            print 'badline'
+            return
+
+        if js['cluster'] != self.args['cluster_name']:
+            return
 
         ret['timestr'] = js['timestr']
         def sum_redis(what):
             val = 0
             for k,v in js['infos'].items():
-                if k.startswith('[redis') and what in v:
+                if k.startswith('[redis') and v['role'] == 'master' and what in v:
                     #print k, v['instantaneous_ops_per_sec']
                     val += int(v[what])
             return val
@@ -156,7 +163,6 @@ class Monitor():
         for f in files[-24:]:
             for line in file(f):
                 self._print_statlog_line(line)
-
 
     def _monitor(self):
         '''
@@ -224,13 +230,13 @@ class Monitor():
             now = time.time()
             redis_spec = {
                     'connected_clients':          (0, 1000),
-                    'used_memory_peak' :          (0, 5*(2**30)),
-                    'rdb_last_bgsave_time_sec':   (0, 1),
-                    'aof_last_rewrite_time_sec':  (0, 1),
-                    'latest_fork_usec':           (0, 100*1000), #100ms
+                    'used_memory_peak' :          (0, 6*(2**30)),
+                    'rdb_last_bgsave_time_sec':   (0, 1000),
+                    'aof_last_rewrite_time_sec':  (0, 1000),
+                    'latest_fork_usec':           (0, 500*1000), #500ms
                     'master_link_status':         set(['up']),
                     'rdb_last_bgsave_status':     set(['ok']),
-                    'rdb_last_save_time':         (now-25*60*60, now),
+                    'rdb_last_save_time':         (now-30*60*60, now),
                     #- hit_rate
                     #- slow log
                 }
@@ -292,8 +298,8 @@ class Monitor():
 
         cron = crontab.Cron()
         cron.add('* * * * *'   , self._monitor) # every minute
-        cron.add('0 3 * * *' , self.rdb, use_thread=True)                # every day
-        cron.add('0 5 * * *' , self.aof_rewrite, use_thread=True)        # every day
+        cron.add('0 9 * * *' , self.rdb, use_thread=True)                # every day
+        cron.add('0 10 * * *' , self.aof_rewrite, use_thread=True)        # every day
         cron.run()
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
