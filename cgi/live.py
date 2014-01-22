@@ -7,7 +7,7 @@
 from cgicommon import *
 
 def clean_line(line):
-    return line.strip().replace('\033[94m', '').replace('\033[0m', '')
+    return line.replace('\033[94m', '').replace('\033[0m', '')
 
 #http://localhost:8000/cgi/live.py?conf=conf&cluster=cluster0&cmd=live_master_mem
 @nothrow(IOError)
@@ -35,7 +35,7 @@ def main():
     while True:
         line = p.stdout.readline()
         if line != '':
-            print clean_line(line)
+            print clean_line(line),
             sys.stdout.flush()
         else:
             break

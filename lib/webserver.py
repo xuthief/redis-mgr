@@ -21,7 +21,7 @@ class MultiThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     pass
 
 class WebServer():
-    def web_server(self, port=8000):
+    def web_server(self, port=8008):
         server_address = ('', port)
         handler = CGIHTTPServer.CGIHTTPRequestHandler
         cgipath = os.path.join(PWD, '../cgi')
