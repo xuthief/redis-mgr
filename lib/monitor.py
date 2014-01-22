@@ -154,13 +154,14 @@ class Monitor():
 
         print TT('$timestr ${qps}q/s ${mem}MB', ret)
 
-    def history(self):
+    def history(self, cnt=1):
         '''
         history monitor info of the cluster
         '''
+        cnt = int(cnt)
         files = glob.glob('data/%s/statlog.*'% self.args['cluster_name'])
         files.sort()
-        for f in files[-24:]:
+        for f in files[-cnt:]:
             for line in file(f):
                 self._print_statlog_line(line)
 
