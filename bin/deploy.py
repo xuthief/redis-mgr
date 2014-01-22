@@ -11,6 +11,7 @@ sys.path.append(os.path.join(WORKDIR, 'conf/'))
 
 from utils import *
 from monitor import Monitor, Benchmark
+from webserver import WebServer
 
 class Base:
     '''
@@ -417,7 +418,7 @@ $cluster_name:
         logging.info('proxy %s:%s is updated' % (self.args['host'], self.args['port']))
 
 
-class Cluster(object, Monitor, Benchmark):
+class Cluster(object, Monitor, Benchmark, WebServer):
     def __init__(self, args):
         self.args = args
         self.all_redis = [ RedisServer(self.args['user'], hp, path) for hp, path in self.args['redis'] ]

@@ -55,6 +55,7 @@ class Monitor():
                 return format_func(info[what])
 
             print ' '.join([ '%5s' % get_v(s) for s in self.all_nutcracker]) + '\t' + common.format_time(None, '%X')
+            sys.stdout.flush()
 
             time.sleep(1)
 
@@ -79,6 +80,7 @@ class Monitor():
                     return '-'
                 return format_func(info[what])
             print ' '.join([ '%5s' % get_v(s) for s in masters]) + '\t' + common.format_time(None, '%X')
+            sys.stdout.flush()
 
             time.sleep(1)
 
@@ -123,13 +125,25 @@ class Monitor():
         '''
         self._live_nutcracker('out_queue')
 
-    def live_all(self):
+    def live_overview(self, cnt=1000):
         '''
-        all monitor info of the cluster
+        overview monitor info of the cluster (from statlog file)
         '''
-        pass
+        statlog = None
+        for i in range(cnt):
+            if statlog != self.__get_statlog_filepath(time.time()):
+                statlog = self.__get_statlog_filepath(time.time())
+                fin = file(statlog)
+                fin.seek(0, 2)
+                time.sleep(60)
+                continue
 
-    def _print_statlog_line(self, line):
+            line = fin.readline()
+            self.__print_statlog_line(line)
+
+            time.sleep(60)
+
+    def __print_statlog_line(self, line):
         ret = {}
         try:
             js = common.json_decode(line)
@@ -137,8 +151,8 @@ class Monitor():
             print 'badline'
             return
 
-        if js['cluster'] != self.args['cluster_name']:
-            return
+        #if js['cluster'] != self.args['cluster_name']:
+            #return
 
         ret['timestr'] = js['timestr']
         def sum_redis(what):
@@ -153,6 +167,7 @@ class Monitor():
         ret['mem'] = sum_redis('used_memory_peak')/1024/1024
 
         print TT('$timestr ${qps}q/s ${mem}MB', ret)
+        sys.stdout.flush()
 
     def history(self, cnt=1):
         '''
@@ -163,7 +178,7 @@ class Monitor():
         files.sort()
         for f in files[-cnt:]:
             for line in file(f):
-                self._print_statlog_line(line)
+                self.__print_statlog_line(line)
 
     def _monitor(self):
         '''
@@ -208,15 +223,17 @@ class Monitor():
             'infos': infos,
         }
 
-        DIR = os.path.join(PWD, '../data/%s' % self.args['cluster_name'])
-        STAT_LOG = os.path.join(DIR, 'statlog.%s' % (common.format_time(now, '%Y%m%d%H'), ))
-        common.system('mkdir -p %s' % DIR, None)
-
-        fout = file(STAT_LOG, 'a+')
+        fout = file(self.__get_statlog_filepath(now), 'a+')
         print >> fout, my_json_encode(ret)
         fout.close()
         timeused = time.time() - now
         logging.notice("monitor @ ts: %s, timeused: %.2fs" % (common.format_time_to_min(now), timeused))
+
+    def __get_statlog_filepath(self, now):
+        DIR = os.path.join(PWD, '../data/%s' % self.args['cluster_name'])
+        STAT_LOG = os.path.join(DIR, 'statlog.%s' % (common.format_time(now, '%Y%m%d%H'), ))
+        common.system('mkdir -p %s' % DIR, None)
+        return STAT_LOG
 
     def _check_warning(self, infos):
         def match(val, expr):
@@ -321,6 +338,7 @@ class Monitor():
             = graph web server
         '''
         thread.start_new_thread(self.failover, ())
+        thread.start_new_thread(self.web_server, ())
 
         cron = crontab.Cron()
         cron.add('* * * * *'   , self._monitor) # every minute
