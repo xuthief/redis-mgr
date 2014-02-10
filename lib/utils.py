@@ -45,4 +45,24 @@ def lets_sleep(SLEEP_TIME = 0.1):
 def TT(template, args): #todo: modify all
     return Template(template).substitute(args)
 
+def nothrow(ExceptionToCheck=Exception, logger=None):
+    def deco_retry(f):
+        def f_retry(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except ExceptionToCheck, e:
+                if logger:
+                    logger.info(e)
+                else:
+                    print str(e)
+        return f_retry  # true decorator
+    return deco_retry
+
+@nothrow(Exception)
+def test_nothrow():
+    raise Exception('exception: xx')
+
+if __name__ == "__main__":
+    test_nothrow()
+
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

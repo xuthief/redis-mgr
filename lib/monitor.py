@@ -48,8 +48,7 @@ class Benchmark():
 
 class Monitor():
     def _live_nutcracker(self, what, format_func = lambda x:x):
-
-        for i in xrange(1000*1000):
+        for i in xrange(1000*1):
             if i%10 == 0:
                 header = common.to_blue(' '.join(['%5s' % s.args['port'] for s in self.all_nutcracker]))
                 print header
@@ -61,12 +60,13 @@ class Monitor():
                 return format_func(info[what])
 
             print ' '.join([ '%5s' % get_v(s) for s in self.all_nutcracker]) + '\t' + common.format_time(None, '%X')
+            sys.stdout.flush()
 
             time.sleep(1)
 
     def _live_redis(self, what, format_func = lambda x:x):
         masters = self._active_masters()
-        for i in xrange(1000*1000):
+        for i in xrange(1000*10):
             if i%10 == 0:
                 old_masters = masters
                 masters = self._active_masters()
@@ -85,6 +85,7 @@ class Monitor():
                     return '-'
                 return format_func(info[what])
             print ' '.join([ '%5s' % get_v(s) for s in masters]) + '\t' + common.format_time(None, '%X')
+            sys.stdout.flush()
 
             time.sleep(1)
 
@@ -129,21 +130,40 @@ class Monitor():
         '''
         self._live_nutcracker('out_queue')
 
-    def live_all(self):
+    def live_overview(self, cnt=1000):
         '''
-        all monitor info of the cluster
+        overview monitor info of the cluster (from statlog file)
         '''
-        pass
+        statlog = None
+        for i in range(cnt):
+            if statlog != self.__get_statlog_filepath(time.time()):
+                statlog = self.__get_statlog_filepath(time.time())
+                fin = file(statlog)
+                fin.seek(0, 2)
+                time.sleep(60)
+                continue
 
-    def _print_statlog_line(self, line):
+            line = fin.readline()
+            self.__print_statlog_line(line)
+
+            time.sleep(60)
+
+    def __print_statlog_line(self, line):
         ret = {}
-        js = common.json_decode(line)
+        try:
+            js = common.json_decode(line)
+        except Exception, e:
+            print 'badline'
+            return
+
+        #if js['cluster'] != self.args['cluster_name']:
+            #return
 
         ret['timestr'] = js['timestr']
         def sum_redis(what):
             val = 0
             for k,v in js['infos'].items():
-                if k.startswith('[redis') and what in v:
+                if k.startswith('[redis') and v['role'] == 'master' and what in v:
                     #print k, v['instantaneous_ops_per_sec']
                     val += int(v[what])
             return val
@@ -152,17 +172,18 @@ class Monitor():
         ret['mem'] = sum_redis('used_memory_peak')/1024/1024
 
         print TT('$timestr ${qps}q/s ${mem}MB', ret)
+        sys.stdout.flush()
 
-    def history(self):
+    def history(self, cnt=1):
         '''
         history monitor info of the cluster
         '''
-        files = glob.glob('data/statlog.*')
+        cnt = int(cnt)
+        files = glob.glob('data/%s/statlog.*'% self.args['cluster_name'])
         files.sort()
-        for f in files[-24:]:
+        for f in files[-cnt:]:
             for line in file(f):
-                self._print_statlog_line(line)
-
+                self.__print_statlog_line(line)
 
     def _monitor(self):
         '''
@@ -207,15 +228,17 @@ class Monitor():
             'infos': infos,
         }
 
-        DIR = os.path.join(PWD, '../data')
-        STAT_LOG = os.path.join(DIR, 'statlog.%s' % (common.format_time(now, '%Y%m%d%H')))
-        common.system('mkdir -p %s' % DIR, None)
-
-        fout = file(STAT_LOG, 'a+')
+        fout = file(self.__get_statlog_filepath(now), 'a+')
         print >> fout, my_json_encode(ret)
         fout.close()
         timeused = time.time() - now
         logging.notice("monitor @ ts: %s, timeused: %.2fs" % (common.format_time_to_min(now), timeused))
+
+    def __get_statlog_filepath(self, now):
+        DIR = os.path.join(PWD, '../data/%s' % self.args['cluster_name'])
+        STAT_LOG = os.path.join(DIR, 'statlog.%s' % (common.format_time(now, '%Y%m%d%H'), ))
+        common.system('mkdir -p %s' % DIR, None)
+        return STAT_LOG
 
     def _check_warning(self, infos):
         def match(val, expr):
@@ -230,13 +253,13 @@ class Monitor():
             now = time.time()
             redis_spec = {
                     'connected_clients':          (0, 1000),
-                    'used_memory_peak' :          (0, 5*(2**30)),
-                    'rdb_last_bgsave_time_sec':   (0, 1),
-                    'aof_last_rewrite_time_sec':  (0, 1),
-                    'latest_fork_usec':           (0, 100*1000), #100ms
+                    'used_memory_peak' :          (0, 6*(2**30)),
+                    'rdb_last_bgsave_time_sec':   (0, 1000),
+                    'aof_last_rewrite_time_sec':  (0, 1000),
+                    'latest_fork_usec':           (0, 500*1000), #500ms
                     'master_link_status':         set(['up']),
                     'rdb_last_bgsave_status':     set(['ok']),
-                    'rdb_last_save_time':         (now-25*60*60, now),
+                    'rdb_last_save_time':         (now-30*60*60, now),
                     #- hit_rate
                     #- slow log
                 }
@@ -278,13 +301,38 @@ class Monitor():
             if strstr(node, 'nutcracker'):
                 check_nutcracker(node, info)
 
-    def monitor(self):
-        '''
-        a long time running monitor task, write WARN log on bad things happend
-        '''
-        while True:
-            self._monitor()
-            time.sleep(60)
+    #def monitor(self):
+        #'''
+        #a long time running monitor task, write WARN log on bad things happend
+        #'''
+        #while True:
+            #self._monitor()
+            #time.sleep(60)
+
+    def upgrade_nutcracker(self):
+        masters = self._active_masters()
+
+        i = 0
+        pause_cnt = len(self.all_nutcracker) / 3
+
+        for m in self.all_nutcracker:
+            m.reconfig(masters)
+            if i % pause_cnt == 0:
+                while 'yes' != raw_input('do you want to continue yes/ctrl-c: '):
+                    pass
+            i+=1
+
+        logging.notice('reconfig all nutcracker Done!')
+
+    def log_rotate(self):
+        t = common.format_time(None, '%Y%m%d%H')
+        for m in self.all_nutcracker:
+            cmd = 'mv log/nutcracker.log log/nutcracker.log.%s' % t
+            m._sshcmd(cmd)
+            cmd = "pkill -HUP -f '%s'" % m.args['runcmd']
+            m._sshcmd(cmd)
+            cmd = "find log/ -name 'nutcracker.log.2*' -amin +1440 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null" # 1440 min = 1 day
+            m._sshcmd(cmd)
 
     def scheduler(self):
         '''
@@ -295,11 +343,12 @@ class Monitor():
             = graph web server
         '''
         thread.start_new_thread(self.failover, ())
+        thread.start_new_thread(self.web_server, ())
 
         cron = crontab.Cron()
         cron.add('* * * * *'   , self._monitor) # every minute
-        cron.add('0 3 * * *' , self.rdb, use_thread=True)                # every day
-        cron.add('0 5 * * *' , self.aof_rewrite, use_thread=True)        # every day
+        cron.add('0 9 * * *' , self.rdb, use_thread=True)                # every day
+        cron.add('0 10 * * *' , self.aof_rewrite, use_thread=True)        # every day
         cron.run()
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
