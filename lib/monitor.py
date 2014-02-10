@@ -18,11 +18,17 @@ class Benchmark():
         '''
         run benchmark against nutcracker
         '''
+        i = 0
+        masters= self._active_masters()
         for s in self.all_nutcracker:
             args = copy.deepcopy(s.args)
             args['cnt'] = cnt
             cmd = TT('bin/redis-benchmark --csv -h $host -p $port -r 100000 -t set,get -n $cnt -c 100 ', args)
-            BenchThread(random.choice(self._active_masters()), cmd).start()
+
+            BenchThread(masters[i], cmd).start()
+            i += 1
+            i %= len(masters)
+            
 
     def mbench(self, cnt=100000):
         '''
