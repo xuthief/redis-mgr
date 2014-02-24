@@ -2,10 +2,18 @@
 #the port: role: x, cluster_id: x, instance:xx
 #       2        0              x           xx
 
-#redis-master   20xxx
-#redis-slave    21xxx
-#proxy          22xxx 23xxx(status-port)
+#port standard 1
+#redis-master   22xxx
+#redis-slave    23xxx
+#proxy          24xxx 25xxx(status-port)
 #sentinel       29xxx
+
+#port standard 2
+
+#redis-master   2xxx
+#redis-slave    3xxx
+#proxy          4xxx 5xxx(status-port)
+#sentinel       9xxx
 
 #we will generate:
 #port
@@ -18,7 +26,7 @@ BINARYS = {
     'REDIS_SERVER_BINS' : '/home/ning/idning-github/redis/src/redis-*',
     'REDIS_CLI' : '/home/ning/idning-github/redis/src/redis-cli',
     'REDIS_SENTINEL_BINS' : '/home/ning/idning-github/redis/src/redis-sentinel',
-    'NUTCRACKER_BINS' : '/home/ning/Desktop/t/nutcracker-0.2.4/output/bin/nutcracker',
+    'NUTCRACKER_BINS' : '/home/ning/idning-github/twemproxy/src/nutcracker',
 }
 
 RDB_SLEEP_TIME = 1
@@ -47,15 +55,16 @@ cluster0 = {
     ],
     'redis': [
         # master(host:port, install path)       ,  slave(host:port, install path)
-        ('127.0.0.5:20000', '/tmp/r/redis-20000'), ('127.0.0.5:21000', '/tmp/r/redis-21000'),
-        ('127.0.0.5:20001', '/tmp/r/redis-20001'), ('127.0.0.5:21001', '/tmp/r/redis-21001'),
-        ('127.0.0.5:20002', '/tmp/r/redis-20002'), ('127.0.0.5:21002', '/tmp/r/redis-21002'),
-        ('127.0.0.5:20003', '/tmp/r/redis-20003'), ('127.0.0.5:21003', '/tmp/r/redis-21003'),
+        ('127.0.0.5:22000', '/tmp/r/redis-22000'), ('127.0.0.5:23000', '/tmp/r/redis-23000'),
+        ('127.0.0.5:22001', '/tmp/r/redis-22001'), ('127.0.0.5:23001', '/tmp/r/redis-23001'),
+        ('127.0.0.5:22002', '/tmp/r/redis-22002'), ('127.0.0.5:23002', '/tmp/r/redis-23002'),
+        ('127.0.0.5:22003', '/tmp/r/redis-22003'), ('127.0.0.5:23003', '/tmp/r/redis-23003'),
     ],
     'nutcracker': [
-        ('127.0.0.5:22000', '/tmp/r/nutcracker-22000'),
-        ('127.0.0.5:22001', '/tmp/r/nutcracker-22001'),
-        ('127.0.0.5:22002', '/tmp/r/nutcracker-22002'),
+        ('127.0.0.5:24000', '/tmp/r/nutcracker-24000'),
+        ('127.0.0.5:24001', '/tmp/r/nutcracker-24001'),
+        ('127.0.0.5:24002', '/tmp/r/nutcracker-24002'),
+        ('127.0.0.5:24003', '/tmp/r/nutcracker-24003'),
     ],
 }
 

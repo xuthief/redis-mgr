@@ -196,6 +196,14 @@ it will gen the deploy.py config like this:
 
 .. image:: doc/twemproxy-sentinel-cluster.png
 
+migrante redis instance
+=======================
+
+if we have 32 masters in 16 machines
+
+1. dilatancy: move 2*32 intance on 16 machine to 32/64 machines (we can migrate data over cluster now)
+2. maintance: one of the machines is down, we have to move data to another machine.
+
 Dependency
 ==========
 
@@ -212,7 +220,7 @@ Authors
 TODO
 ====
 
-1. schedular for many clusters, we will need it!
+1. schedular for many clusters, we will need it! <we can use a shell script>
 2. SLOW LOG monitor
 3. #live monitor for nutcracker
 4. #nc to get nutcracker status will fail in background::
@@ -221,7 +229,8 @@ TODO
 
    we use telnetlib instead
 5. migrate of redis instance
-6. a live command for cluster overview info(qps, mem, hit-rate)
+6. migrate data over cluster.
+7. #a live command for cluster overview info(qps, mem, hit-rate)
 
 Graph
 =====
