@@ -3,6 +3,7 @@
 
 import os
 import sys
+from pprint import pprint
 
 PWD = os.path.dirname(os.path.realpath(__file__))
 WORKDIR = os.path.join(PWD,  '../')
@@ -15,23 +16,64 @@ from monitor import Monitor, Benchmark
 from migrate import Migrate
 from webserver import WebServer
 
-
 class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
     def __init__(self, args):
         self.args = args
-        self.all_redis = [ RedisServer(self.args['user'], hp, path) for hp, path in self.args['redis'] ]
-        pairs = zip(self.all_redis[::2], self.all_redis[1::2])
+        self._rewrite_redis_config()
 
-        for m, s in pairs: #slave use same name as master
-            s.args['cluster_name'] = m.args['cluster_name'] = args['cluster_name']
-            s.args['server_name'] = m.args['server_name'] = TT('$cluster_name-$port', m.args)
-
+        self.all_redis = [ self._make_redis(s) for s in self.args['redis'] ]
         masters = self.all_redis[::2]
 
         self.all_sentinel = [Sentinel(self.args['user'], hp, path, masters) for hp, path in self.args['sentinel'] ]
         self.all_nutcracker = [NutCracker(self.args['user'], hp, path, masters) for hp, path in self.args['nutcracker'] ]
         for m in self.all_nutcracker:
             m.args['cluster_name'] = args['cluster_name']
+
+    def _rewrite_redis_config(self):
+        #make pairs
+        for i in range(len(self.args['redis'])):
+            r = self.args['redis'][i]
+            if len(r) == 2: #old format ('127.0.0.5:22000', '/tmp/r/redis-22000')
+                host, port = r[0].split(':')
+                path = r[1]
+                if i % 2 == 1: # is slave, use port of last one
+                    master_port = self.args['redis'][i-1].split(':')[2]
+                else:
+                    master_port = port
+                s = '%s-%s:%s:%s:%s' % (self.args['cluster_name'], master_port, host, port, path)
+                self.args['redis'][i] = s
+            else:
+                self.args['redis'][i] = s
+
+        #merge the 'migration' section
+        if 'migration' in  self.args:
+            for migration in self.args['migration']:
+                src, dst = migration.split('=>')
+                for i in range(len(self.args['redis'])):
+                    if self.args['redis'][i] == src:
+                        self.args['redis'][i] = dst
+                        logging.info('replace %s as %s' % (src, dst))
+
+        pprint(self.args)
+
+    def _make_redis(self, spec):
+        server_name, host, port, path = spec.split(':')
+        host_port = host+':'+port
+        #port = int(port)
+
+        r = RedisServer(self.args['user'], host_port, path)
+        r.args['cluster_name'] = self.args['cluster_name']
+        r.args['server_name'] = server_name
+        return r
+
+    def _find_redis(self, host_port, name): # make master instance
+        #TODO, remove name
+        host = host_port.split(':')[0]
+        port = int(host_port.split(':')[1])
+        for r in self.all_redis:
+            if r.args['host'] == host and r.args['port'] == port:
+                return r
+        #TODO: if not found, construct one
 
     def _doit(self, op):
         logging.notice('%s redis' % (op, ))
@@ -58,14 +100,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         new_masters = self._get_available_sentinel().get_masters()
         new_masters = sorted(new_masters, key=lambda x: x[1])
 
-        def make_master(host_port, name): # make master instance
-            host = host_port.split(':')[0]
-            port = int(host_port.split(':')[1])
-            for r in self.all_redis:
-                if r.args['host'] == host and r.args['port'] == port:
-                    return r
-
-        masters = [make_master(host_port, name) for host_port, name in new_masters]
+        masters = [self._find_redis(host_port, name) for host_port, name in new_masters]
         return masters
 
     def deploy(self):
@@ -80,14 +115,15 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         '''
         self._doit('start')
 
-        logging.notice('setup master->slave')
+        #TODO: if any master/slave relation is already setup, we will not do this(sentinel will do this)
+        logging.notice('setup master <- slave')
         rs = self.all_redis
         pairs = [rs[i:i+2] for i in range(0, len(rs), 2)]
         for m, s in pairs:
-            if s.isslaveof(m.args['host'], m.args['port']):
-                logging.warn('%s->%s is ok!' % (m,s ))
+            if s.isslaveof(m.args['host'], m.args['port']) or m.isslaveof(s.args['host'], s.args['port']):
+                logging.warn('%s <- %s is ok!' % (m,s ))
             else:
-                logging.info('setup %s->%s' % (m,s ))
+                logging.info('setup %s <- %s' % (m,s ))
                 s.slaveof(m.args['host'], m.args['port'])
 
     def stop(self):
@@ -108,6 +144,20 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         get status of all instance(redis/sentinel/nutcracker) in this cluster
         '''
         self._doit('status')
+        sentinel = self._get_available_sentinel()
+        logging.notice('status master-slave')
+
+        def formatslave(s):
+            ret = '%s:%s' % (s['ip'], s['port'])
+            if s['is_disconnected']:
+                return common.to_red(ret)
+            return ret
+
+        #print self._active_masters()
+        for m in self._active_masters():
+            slaves = [formatslave(s) for s in sentinel.get_slaves(m.args['server_name'])]
+            print m.args['server_name'], m, '<-', '/'.join(slaves)
+
 
     def log(self):
         '''
@@ -208,7 +258,6 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
             except Exception, e:
                 logging.warn('we got exception: %s on failover task' % e)
                 logging.exception(e)
-
 
 def discover_op():
     methods = inspect.getmembers(Cluster, predicate=inspect.ismethod)

@@ -249,6 +249,24 @@ sentinel parallel-syncs $server_name 1
         logging.debug('sentinel got masters: %s' % masters)
         return [('%s:%s' % (m['ip'], m['port']), m['name']) for m in masters.values()]
 
+    def get_slaves(self, master_name):
+        conn = redis.Redis(self.args['host'], self.args['port'])
+        slaves = conn.sentinel_slaves(master_name)
+        logging.debug('sentinel got slaves: %s' % slaves)
+        return slaves
+
+    def reset(self, master_name):
+        conn = redis.Redis(self.args['host'], self.args['port'])
+        slaves = conn.sentinel('reset', master_name)
+        logging.debug('sentinel reset')
+        return slaves
+
+    def failover(self, master_name):
+        conn = redis.Redis(self.args['host'], self.args['port'])
+        slaves = conn.sentinel('failover', master_name)
+        logging.debug('sentinel failover %s' % master_name)
+        return slaves
+
     def get_failover_event(self):
         self._sub = redis.Redis(self.args['host'], self.args['port']).pubsub()
         self._sub.subscribe('+switch-master')
