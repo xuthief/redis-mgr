@@ -204,6 +204,55 @@ if we have 32 masters in 16 machines
 1. dilatancy: move 2*32 intance on 16 machine to 32/64 machines (so we got larger memory)
 2. maintance: one of the machines is down, we have to move data to another machine.
 
+here is the steps:
+
+- pre_check,
+- force_src_be_slave,
+- deploy_dst,
+- add_dst_as_slave,
+- cleanup,
+- sentinel_reset,
+- update_config,
+
+usage::
+
+    $ ./bin/deploy.py cluster0 migrate cluster0-22000:127.0.0.5:23000:/tmp/r/redis-23000 cluster0-22000:127.0.0.5:50015:/tmp/r/redis-50015
+    ...
+    2014-02-27 19:21:58,667 [MainThread] [INFO] deploy [redis:127.0.0.5:50015]
+    2014-02-27 19:21:59,774 [MainThread] [INFO] [redis:127.0.0.5:50015] start ok in 0.19 seconds
+    2014-02-27 19:21:59,775 [MainThread] [NOTICE] add_dst_as_slave
+    2014-02-27 19:21:59,790 [MainThread] [INFO] [redis:127.0.0.5:50015] /home/ning/idning-github/redis/src/redis-cli -h 127.0.0.5 -p 50015 SLAVEOF 127.0.0.5 22000
+    OK
+    2014-02-27 19:21:59,801 [MainThread] [INFO] [redis:127.0.0.5:50015]: {'used_memory': '342432', 'master_link_status': 'down', 'slave_repl_offset': '-1'}
+    2014-02-27 19:22:00,811 [MainThread] [INFO] [redis:127.0.0.5:50015]: {'used_memory': '342464', 'master_link_status': 'down', 'slave_repl_offset': '-1'}
+    2014-02-27 19:22:01,820 [MainThread] [INFO] [redis:127.0.0.5:50015]: {'used_memory': '363456', 'master_link_status': 'up', 'slave_repl_offset': '5998625'}
+    2014-02-27 19:22:01,821 [MainThread] [NOTICE] cleanup
+    2014-02-27 19:22:02,156 [MainThread] [INFO] [redis:127.0.0.5:23000] stop ok in 0.11 seconds
+    2014-02-27 19:22:02,156 [MainThread] [NOTICE] sentinel_reset
+    2014-02-27 19:22:02,165 [MainThread] [NOTICE] update_config
+    2014-02-27 19:22:02,166 [MainThread] [INFO] AppendConfig:cluster0['migration'] = []
+    2014-02-27 19:22:02,166 [MainThread] [INFO] AppendConfig:cluster0['migration'].append('cluster0-22000:127.0.0.5:23000:/tmp/r/redis-23000=>cluster0-22000:127.0.0.5:50015:/tmp/r/redis-50015')
+
+this command will modify the conf.py::
+
+    cluster0['migration'] = []
+    cluster0['migration'].append('cluster0-22000:127.0.0.5:23000:/tmp/r/redis-23000=>cluster0-22000:127.0.0.5:50015:/tmp/r/redis-50015')
+
+and the 'migration' section will auto loaded next time::
+
+    $ ./bin/deploy.py cluster0 status
+    2014-02-27 19:24:24,815 [MainThread] [NOTICE] start running: ./bin/deploy.py -v cluster0 status
+    2014-02-27 19:24:24,820 [MainThread] [NOTICE] status redis
+    2014-02-27 19:24:24,825 [MainThread] [INFO] [redis:127.0.0.5:22000] uptime 29815 seconds
+    2014-02-27 19:24:24,831 [MainThread] [INFO] [redis:127.0.0.5:50015] uptime 145 seconds
+    ...
+    2014-02-27 19:24:24,893 [MainThread] [NOTICE] status master-slave
+    cluster0-22000 [redis:127.0.0.5:22000] <- 127.0.0.5:50015
+    cluster0-22001 [redis:127.0.0.5:22001] <- 127.0.0.5:23001
+    cluster0-22002 [redis:127.0.0.5:22002] <- 127.0.0.5:23002
+    cluster0-22003 [redis:127.0.0.5:22003] <- 127.0.0.5:23003
+
+
 Dependency
 ==========
 
