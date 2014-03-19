@@ -14,9 +14,10 @@ from server_modules import *
 from utils import *
 from monitor import Monitor, Benchmark
 from migrate import Migrate
+from misc_task import MiscTask
 from webserver import WebServer
 
-class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
+class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
     def __init__(self, args):
         self.args = args
         self._rewrite_redis_config()
