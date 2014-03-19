@@ -1,4 +1,5 @@
 deploy.py
+
 =========
 
 this script will deploy a redis cluster in ``10 minutes`` with:
@@ -78,27 +79,52 @@ choose your config filename::
 
 ::
 
-    $ ./bin/deploy.py -h
-    usage: deploy.py [-h] [-v] [-o LOGFILE] clustername op [cmd]
+    ning@ning-laptop:~/idning-github/redis-mgr$ ./bin/deploy.py cluster0 -h
+    usage: deploy.py [-h] [-v] [-o LOGFILE] clustername op [cmd [cmd ...]]
 
     positional arguments:
-      clustername           cluster target
-      op                    aof_rewrite     : None
+      clustername           cluster0
+      op                    migrate src dst : migrate a redis instance to another machine
+                            web_server [port]: None
                             deploy          : deploy the binarys and config file (redis/sentinel/nutcracker) in this cluster
-                            kill            : kill all instance(redis/sentinel/nutcracker) in this cluster
-                            log             : show log of all instance(redis/sentinel/nutcracker) in this cluster
-                            master_memory   : show used_memory_human:1.53M
-                            master_qps      : instantaneous_ops_per_sec:4
-                            mastercmd cmd   : run redis command against all redis Master instance, like 'INFO, GET xxxx'
-                            monitor         : monitor status of the cluster
-                            printcmd        : print the start/stop cmd of instance
-                            rdb             : do rdb in all redis instance
-                            reconfig_proxy  : None
-                            rediscmd cmd    : run redis command against all redis instance, like 'INFO, GET xxxx'
                             start           : start all instance(redis/sentinel/nutcracker) in this cluster
-                            status          : get status of all instance(redis/sentinel/nutcracker) in this cluster
                             stop            : stop all instance(redis/sentinel/nutcracker) in this cluster
+                            printcmd        : print the start/stop cmd of instance
+                            status          : get status of all instance(redis/sentinel/nutcracker) in this cluster
+                            log             : show log of all instance(redis/sentinel/nutcracker) in this cluster
+                            rediscmd cmd    : run redis command against all redis instance, like 'INFO, GET xxxx'
+                            mastercmd cmd   : run redis command against all redis Master instance, like 'INFO, GET xxxx'
+                            rdb             : do rdb in all redis instance,
+                            aof_rewrite     : do aof_rewrite in all redis instance
+                            randomkill      : random kill master every mintue (for test failover)
+                            sshcmd cmd      : ssh to target machine and run cmd
+                            reconfigproxy   : sync the masters list from sentinel to proxy
+                            failover        : catch failover event and update the proxy configuration
+                            nbench [cnt]    : run benchmark against nutcracker
+                            mbench [cnt]    : run benchmark against redis master
+                            stopbench       : you will need this for stop benchmark
+                            live_master_mem : monitor used_memory_human:1.53M of master
+                            live_master_qps : monitor instantaneous_ops_per_sec of master
+                            live_nutcracker_request : monitor nutcracker requests/s
+                            live_nutcracker_forward_error : monitor nutcracker forward_error/s
+                            live_nutcracker_inqueue : monitor nutcracker forward_error/s
+                            live_nutcracker_outqueue : monitor nutcracker forward_error/s
+                            live_overview [cnt]: overview monitor info of the cluster (from statlog file)
+                            history [cnt]   : history monitor info of the cluster
+                            upgrade_nutcracker : None
+                            log_rotate      : log_rotate for nutcracker.
+                            scheduler       : start following threads:
       cmd                   the redis/ssh cmd like "INFO"
+
+
+
+following cmds will affect the online running cluster status:
+
+- start (should not)
+- stop                 <will ask for confirm>
+- randomkill           <safe> <will start it later>
+- reconfigproxy        <safe if master-slave relation is ok>
+- migrate
 
 start cluster::
 
@@ -281,6 +307,7 @@ TODO
 6. migrate data over cluster.
 7. #a live command for cluster overview info(qps, mem, hit-rate)
 8. make start cmd reentrant(slaveof cmd)
+9. add ``max-mem`` config. on migration, makesure the max-mem config the same.
 
 Graph
 =====

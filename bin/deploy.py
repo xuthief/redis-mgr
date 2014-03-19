@@ -42,7 +42,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
                     master_port = port
                 s = '%s-%s:%s:%s:%s' % (self.args['cluster_name'], master_port, host, port, path)
                 self.args['redis'][i] = s
-            else:
+            else: #new format: server-name:host:port:path
                 self.args['redis'][i] = s
 
         #merge the 'migration' section
@@ -118,6 +118,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         #TODO: if any master/slave relation is already setup, we will not do this(sentinel will do this)
         logging.notice('setup master <- slave')
         rs = self.all_redis
+        #every time we load config, the master-slave is is pairs.
         pairs = [rs[i:i+2] for i in range(0, len(rs), 2)]
         for m, s in pairs:
             if s.isslaveof(m.args['host'], m.args['port']) or m.isslaveof(s.args['host'], s.args['port']):
@@ -145,7 +146,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         '''
         self._doit('status')
         sentinel = self._get_available_sentinel()
-        logging.notice('status master-slave')
+        logging.notice('status master-slave <all from sentinel>')
 
         def formatslave(s):
             ret = '%s:%s' % (s['ip'], s['port'])
@@ -153,11 +154,12 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
                 return common.to_red(ret)
             return ret
 
-        #print self._active_masters()
-        for m in self._active_masters():
-            slaves = [formatslave(s) for s in sentinel.get_slaves(m.args['server_name'])]
-            print m.args['server_name'], m, '<-', '/'.join(slaves)
+        masters = sentinel.get_raw_masters().values()
+        masters.sort(key=lambda x: x['name'])
 
+        for m in masters:
+            slaves = [formatslave(s) for s in sentinel.get_raw_slaves(m['name'])]
+            print m['name'], formatslave(m), '<-', '/'.join(slaves)
 
     def log(self):
         '''
@@ -188,6 +190,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         do rdb in all redis instance,
         '''
         self._rediscmd('BGSAVE', conf.RDB_SLEEP_TIME)
+        time.sleep(conf.RDB_SLEEP_TIME)
 
         t = common.format_time(None, '%Y%m%d%H')
         cmd = 'cp data/dump.rdb data/dump.rdb.%s' % t
@@ -241,8 +244,12 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
             return
         logging.notice('we will do reconfigproxy')
 
+        t = common.format_time(None, '%Y%m%d%H')
+        cmd = 'cp conf/nutcracker.conf conf/nutcracker.conf.%s' % t
+
         masters = self._active_masters()
         for m in self.all_nutcracker:
+            m._sshcmd(cmd) #backup config first.
             m.reconfig(masters)
         logging.notice('reconfig all nutcracker Done!')
 

@@ -249,7 +249,14 @@ sentinel parallel-syncs $server_name 1
         logging.debug('sentinel got masters: %s' % masters)
         return [('%s:%s' % (m['ip'], m['port']), m['name']) for m in masters.values()]
 
-    def get_slaves(self, master_name):
+    def get_raw_masters(self):
+        '''return currnet master list of (host:port, name)'''
+        conn = redis.Redis(self.args['host'], self.args['port'])
+        masters = conn.sentinel_masters()
+        logging.debug('sentinel got masters: %s' % masters)
+        return masters
+
+    def get_raw_slaves(self, master_name):
         conn = redis.Redis(self.args['host'], self.args['port'])
         slaves = conn.sentinel_slaves(master_name)
         logging.debug('sentinel got slaves: %s' % slaves)

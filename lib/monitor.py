@@ -28,7 +28,7 @@ class Benchmark():
             BenchThread(masters[i], cmd).start()
             i += 1
             i %= len(masters)
-            
+
 
     def mbench(self, cnt=100000):
         '''
@@ -325,6 +325,9 @@ class Monitor():
         logging.notice('reconfig all nutcracker Done!')
 
     def log_rotate(self):
+        '''
+        log_rotate for nutcracker.
+        '''
         t = common.format_time(None, '%Y%m%d%H')
         for m in self.all_nutcracker:
             cmd = 'mv log/nutcracker.log log/nutcracker.log.%s' % t
@@ -340,7 +343,7 @@ class Monitor():
             - failover
             - cron of monitor
             - cron of rdb
-            = graph web server
+            - graph web server at default port
         '''
         thread.start_new_thread(self.failover, ())
         thread.start_new_thread(self.web_server, ())
