@@ -67,14 +67,15 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         return r
 
     def _find_redis(self, host_port, name): # make master instance
-        #TODO, remove name
         host = host_port.split(':')[0]
         port = int(host_port.split(':')[1])
         for r in self.all_redis:
             if r.args['host'] == host and r.args['port'] == port:
                 return r
-        raise Exception('can not _find_redis (%s:%s)' % (name, host_port))
-        #TODO: if not found, construct one
+        #we can get the path from redis config by `CONFIG GET dir`, (but not very good)
+        #the monitor and scheduler task will not need PATH, they will be OK.
+        spec = '%s:%s:EMPTY_PATH' % (name, host_port)
+        return self._make_redis(spec)
 
     def _doit(self, op):
         logging.notice('%s redis' % (op, ))

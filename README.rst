@@ -295,7 +295,7 @@ Authors
 TODO
 ====
 
-1. schedular for many clusters, we will need it! <we can use a shell script>
+1. scheduler for many clusters, we will need it! <we can use a shell script>
 2. monitor ``SLOW LOG``
 3. #live monitor for nutcracker
 4. #nc to get nutcracker status will fail in background::

@@ -14,7 +14,7 @@ class Migrate():
         src/dst format: cluster0-22000:127.0.0.5:23000:/tmp/r/redis-23000 cluster0-22000:127.0.0.5:50015:/tmp/r/redis-50015
 
         0. pre_check
-        1. if src is master, force sentinel a failover, make src be slave, wait sync
+        1. if src is master, force sentinel a failover, make src be slave, wait sync  #the scheduler task will reconfig proxy
         2. deploy dst
         3. add dst as slave to the group master, wait repl
         4. confirm, stop and cleanup src
@@ -34,19 +34,22 @@ class Migrate():
                     break
                 time.sleep(1)
 
-        #TODO: schedular must be stoped here(it can not find the new redis instance)
-        #but we need schedular to reconfig proxy here
         src_redis = self._make_redis(src)
         dst_redis = self._make_redis(dst)
+
+        def _redis_in_cluster(host, port): # if this redis is member of this cluster
+            for r in self.all_redis:
+                if r.args['host'] == host and r.args['port'] == port:
+                    return True
+            return False
 
         def pre_check():
             if src_redis.args['server_name'] != dst_redis.args['server_name']:
                 raise Exception('server_name not match')
 
             src_host_port = TT('$host:$port', src_redis.args)
-            if str(src_redis) != str(self._find_redis(src_host_port, '')):
+            if not _redis_in_cluster(src_redis.args['host'], src_redis.args['port']):
                 raise Exception('src_redis %s not found in this cluster' % src_redis)
-
 
             #check the old master-slave is ok
             sentinel = self._get_available_sentinel()
@@ -107,6 +110,7 @@ class Migrate():
             if 'migration' not in self.args:
                 append_config("%s['migration'] = []" % self.args['cluster_name'])
             append_config("%s['migration'].append('%s=>%s')" % (self.args['cluster_name'], src, dst))
+            logging.warn('please restart the scheduler task <or you will got WARNING of the old node down> ')
 
         steps = [
                pre_check,
