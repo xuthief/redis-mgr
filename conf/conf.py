@@ -68,3 +68,13 @@ cluster0 = {
     ],
 }
 
+cluster0['migration'] = []
+cluster0['migration'].append('cluster0-22000:127.0.0.5:22000:/tmp/r/redis-22000=>cluster0-22000:127.0.0.5:52000:/tmp/r/redis-52000')
+cluster0['migration'].append('cluster0-22000:127.0.0.5:23000:/tmp/r/redis-23000=>cluster0-22000:127.0.0.5:53000:/tmp/r/redis-53000')
+cluster0['migration'].append('cluster0-22000:127.0.0.5:53000:/tmp/r/redis-53000=>cluster0-22000:127.0.0.5:54000:/tmp/r/redis-54000')
+cluster0['migration'].append('cluster0-22000:127.0.0.5:54000:/tmp/r/redis-54000=>cluster0-22000:127.0.0.5:55000:/tmp/r/redis-55000')
+cluster0['migration'].append('cluster0-22000:127.0.0.5:52000:/tmp/r/redis-52000=>cluster0-22000:127.0.0.5:56000:/tmp/r/redis-56000')
+cluster0['migration'].append('cluster0-22000:127.0.0.5:55000:/tmp/r/redis-55000=>cluster0-22000:127.0.0.5:52000:/tmp/r/redis-52000')
+cluster0['migration'].append('cluster0-22000:127.0.0.5:56000:/tmp/r/redis-56000=>cluster0-22000:127.0.0.5:57000:/tmp/r/redis-57000')
+cluster0['migration'].append('cluster0-22000:127.0.0.5:52000:/tmp/r/redis-52000=>cluster0-22000:127.0.0.5:58000:/tmp/r/redis-58000')
+cluster0['migration'].append('cluster0-22000:127.0.0.5:57000:/tmp/r/redis-57000=>cluster0-22000:127.0.0.5:59000:/tmp/r/redis-59000')

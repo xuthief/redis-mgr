@@ -25,7 +25,7 @@ class Base:
             'localdir'  : '',     #files to deploy
 
             'startcmd'  : '',     #startcmd and runcmd will used to generate the control script
-            'runcmd'    : '',
+            'runcmd'    : '',     #process name you see in `ps -aux`, we use this to generate stop cmd
             'logfile'   : '',
         }
 
@@ -105,7 +105,6 @@ class Base:
         '''
         remote_cmd = self._remote_cmd(cmd)
         logging.info(remote_cmd)
-        #common.system_bg(remote_cmd, logging.debug)
         print self._run(remote_cmd)
 
     def _alive(self):
@@ -263,12 +262,18 @@ sentinel parallel-syncs $server_name 1
         return slaves
 
     def reset(self, master_name):
+        '''
+        reset all the masters with matching name.
+        '''
         conn = redis.Redis(self.args['host'], self.args['port'])
         slaves = conn.sentinel('reset', master_name)
         logging.debug('sentinel reset')
         return slaves
 
     def failover(self, master_name):
+        '''
+        Force a failover as if the master was not reachable
+        '''
         conn = redis.Redis(self.args['host'], self.args['port'])
         slaves = conn.sentinel('failover', master_name)
         logging.debug('sentinel failover %s' % master_name)

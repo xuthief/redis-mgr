@@ -73,6 +73,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         for r in self.all_redis:
             if r.args['host'] == host and r.args['port'] == port:
                 return r
+        raise Exception('can not _find_redis (%s:%s)' % (name, host_port))
         #TODO: if not found, construct one
 
     def _doit(self, op):
@@ -145,7 +146,12 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         get status of all instance(redis/sentinel/nutcracker) in this cluster
         '''
         self._doit('status')
+
         sentinel = self._get_available_sentinel()
+        if not sentinel:
+            logging.error('no sentinel available')
+            return
+
         logging.notice('status master-slave <all from sentinel>')
 
         def formatslave(s):
@@ -166,6 +172,22 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
         show log of all instance(redis/sentinel/nutcracker) in this cluster
         '''
         self._doit('log')
+
+    def sentinel_cmd_reset(self, pattern):
+        '''
+        run redis command against ONE sentinel instance, 'reset <pattern>'
+        '''
+        #TODO: should we do this on every sentinel or not? I think so
+        #if we do reset to only one sentinel, and the old node start again, it will be slave.
+        for sentinel in self.all_sentinel:
+            print sentinel.reset(pattern)
+
+    def sentinel_cmd_failover(self, master):
+        '''
+        run redis command against ONE sentinel instance, 'failover <master name>'
+        '''
+        sentinel = self._get_available_sentinel()
+        print sentinel.failover(master)
 
     def _rediscmd(self, cmd, sleeptime=.1):
         for s in self.all_redis:
@@ -244,7 +266,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate):
             return
         logging.notice('we will do reconfigproxy')
 
-        t = common.format_time(None, '%Y%m%d%H')
+        t = common.format_time(None, '%Y%m%d%H%M')
         cmd = 'cp conf/nutcracker.conf conf/nutcracker.conf.%s' % t
 
         masters = self._active_masters()

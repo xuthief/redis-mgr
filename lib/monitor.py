@@ -48,7 +48,7 @@ class Benchmark():
 
 class Monitor():
     def _live_nutcracker(self, what, format_func = lambda x:x):
-        for i in xrange(1000*1):
+        for i in xrange(1000):
             if i%10 == 0:
                 header = common.to_blue(' '.join(['%5s' % s.args['port'] for s in self.all_nutcracker]))
                 print header
@@ -66,7 +66,7 @@ class Monitor():
 
     def _live_redis(self, what, format_func = lambda x:x):
         masters = self._active_masters()
-        for i in xrange(1000*10):
+        for i in xrange(1000):
             if i%10 == 0:
                 old_masters = masters
                 masters = self._active_masters()

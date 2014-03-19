@@ -11,8 +11,10 @@ class Migrate():
     def migrate(self, src, dst):
         '''
         migrate a redis instance to another machine
+        src/dst format: cluster0-22000:127.0.0.5:23000:/tmp/r/redis-23000 cluster0-22000:127.0.0.5:50015:/tmp/r/redis-50015
+
         0. pre_check
-        1. if src is master, force sentinel a failover, make it be slave, wait sync
+        1. if src is master, force sentinel a failover, make src be slave, wait sync
         2. deploy dst
         3. add dst as slave to the group master, wait repl
         4. confirm, stop and cleanup src
@@ -39,10 +41,30 @@ class Migrate():
 
         def pre_check():
             if src_redis.args['server_name'] != dst_redis.args['server_name']:
-                raise Exception('server_name not same')
+                raise Exception('server_name not match')
+
             src_host_port = TT('$host:$port', src_redis.args)
             if str(src_redis) != str(self._find_redis(src_host_port, '')):
                 raise Exception('src_redis %s not found in this cluster' % src_redis)
+
+
+            #check the old master-slave is ok
+            sentinel = self._get_available_sentinel()
+            master_name = src_redis.args['server_name']
+            master = sentinel.get_raw_masters()[master_name]
+            slaves = sentinel.get_raw_slaves(master_name)
+
+            if master['is_disconnected']:
+                raise Exception('master %s not ok for %s' % (master, master_name))
+            if len(slaves) == 0:
+                raise Exception('no slave for %s' % master_name)
+            for slave in slaves:
+                if slave['is_disconnected']:
+                    raise Exception('slave %s not ok for %s' % (slave, master_name))
+
+            #check if dst exists
+            if dst_redis._alive():
+                raise Exception('dst_redis is alive')
 
         def force_src_be_slave():
             sentinel = self._get_available_sentinel()
@@ -71,8 +93,7 @@ class Migrate():
             pass
 
         def sentinel_reset():
-            sentinel = self._get_available_sentinel()
-            sentinel.reset(src_redis.args['server_name'])
+            self.sentinel_cmd_reset(src_redis.args['server_name'])
 
         def update_config():
             '''
@@ -96,6 +117,7 @@ class Migrate():
                sentinel_reset,
                update_config,
             ]
+
         for step in steps:
             try:
                 logging.notice(step.__name__)
