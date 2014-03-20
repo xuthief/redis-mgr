@@ -44,7 +44,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
                 s = '%s-%s:%s:%s:%s' % (self.args['cluster_name'], master_port, host, port, path)
                 self.args['redis'][i] = s
             else: #new format: server-name:host:port:path
-                self.args['redis'][i] = s
+                self.args['redis'][i] = r
 
         #merge the 'migration' section
         if 'migration' in  self.args:

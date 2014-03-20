@@ -55,16 +55,14 @@ cluster0 = {
     ],
     'redis': [
         # master(host:port, install path)       ,  slave(host:port, install path)
-        ('127.0.0.5:22000', '/tmp/r/redis-22000'), ('127.0.0.5:23000', '/tmp/r/redis-23000'),
-        ('127.0.0.5:22001', '/tmp/r/redis-22001'), ('127.0.0.5:23001', '/tmp/r/redis-23001'),
-        ('127.0.0.5:22002', '/tmp/r/redis-22002'), ('127.0.0.5:23002', '/tmp/r/redis-23002'),
-        ('127.0.0.5:22003', '/tmp/r/redis-22003'), ('127.0.0.5:23003', '/tmp/r/redis-23003'),
+        'cluster0-2000:127.0.0.5:2000:/tmp/r/redis-2000', 'cluster0-2000:127.0.0.5:3000:/tmp/r/redis-3000',
+        'cluster0-2001:127.0.0.5:2001:/tmp/r/redis-2001', 'cluster0-2001:127.0.0.5:3001:/tmp/r/redis-3001',
+        'cluster0-2002:127.0.0.5:2002:/tmp/r/redis-2002', 'cluster0-2002:127.0.0.5:3002:/tmp/r/redis-3002',
+        'cluster0-2003:127.0.0.5:2003:/tmp/r/redis-2003', 'cluster0-2003:127.0.0.5:3003:/tmp/r/redis-3003',
     ],
     'nutcracker': [
-        ('127.0.0.5:24000', '/tmp/r/nutcracker-24000'),
-        ('127.0.0.5:24001', '/tmp/r/nutcracker-24001'),
-        ('127.0.0.5:24002', '/tmp/r/nutcracker-24002'),
-        ('127.0.0.5:24003', '/tmp/r/nutcracker-24003'),
+        ('127.0.0.5:4000', '/tmp/r/nutcracker-4000'),
+        ('127.0.0.5:4001', '/tmp/r/nutcracker-4001'),
     ],
 }
 

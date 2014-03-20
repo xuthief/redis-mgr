@@ -16,15 +16,13 @@ T.s = T.substitute
 CLUSTER_NAME = 'cluster0'
 BASEDIR = '/tmp/r'
 HOSTS = [
-        '127.0.1.1',
-        '127.0.1.2',
-        '127.0.1.3',
-        '127.0.1.4',
+        '127.0.0.5',
+        '127.0.0.5',
         ]
 MASTER_PER_MACHINE = 2
 
 # gen the "redis" section
-port = 20000
+port = 2000
 for i in range(len(HOSTS)):
     for j in range(MASTER_PER_MACHINE):
         slave_port = port + 1000
@@ -42,7 +40,7 @@ for i in range(len(HOSTS)):
         port += 1
 
 # gen the "nutcracker" section
-port = 22000
+port = 4000
 for i in range(len(HOSTS)):
     m = HOSTS[i]
     for j in range(MASTER_PER_MACHINE):
