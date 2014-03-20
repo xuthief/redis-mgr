@@ -68,19 +68,3 @@ cluster0 = {
     ],
 }
 
-cluster0['migration'] = []
-cluster0['migration'].append('cluster0-22000:127.0.0.5:22000:/tmp/r/redis-22000=>cluster0-22000:127.0.0.5:52000:/tmp/r/redis-52000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:23000:/tmp/r/redis-23000=>cluster0-22000:127.0.0.5:53000:/tmp/r/redis-53000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:53000:/tmp/r/redis-53000=>cluster0-22000:127.0.0.5:54000:/tmp/r/redis-54000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:54000:/tmp/r/redis-54000=>cluster0-22000:127.0.0.5:55000:/tmp/r/redis-55000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:52000:/tmp/r/redis-52000=>cluster0-22000:127.0.0.5:56000:/tmp/r/redis-56000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:55000:/tmp/r/redis-55000=>cluster0-22000:127.0.0.5:52000:/tmp/r/redis-52000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:56000:/tmp/r/redis-56000=>cluster0-22000:127.0.0.5:57000:/tmp/r/redis-57000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:52000:/tmp/r/redis-52000=>cluster0-22000:127.0.0.5:58000:/tmp/r/redis-58000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:57000:/tmp/r/redis-57000=>cluster0-22000:127.0.0.5:59000:/tmp/r/redis-59000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:58000:/tmp/r/redis-58000=>cluster0-22000:127.0.0.5:60000:/tmp/r/redis-60000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:59000:/tmp/r/redis-59000=>cluster0-22000:127.0.0.5:61000:/tmp/r/redis-61000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:60000:/tmp/r/redis-60000=>cluster0-22000:127.0.0.5:62000:/tmp/r/redis-62000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:61000:/tmp/r/redis-61000=>cluster0-22000:127.0.0.5:63000:/tmp/r/redis-63000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:62000:/tmp/r/redis-62000=>cluster0-22000:127.0.0.5:65000:/tmp/r/redis-65000')
-cluster0['migration'].append('cluster0-22000:127.0.0.5:63000:/tmp/r/redis-63000=>cluster0-22000:127.0.0.5:63001:/tmp/r/redis-63001')

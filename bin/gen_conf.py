@@ -13,6 +13,7 @@ from pcl import common
 from string import Template as T
 T.s = T.substitute
 
+CLUSTER_NAME = 'cluster0'
 BASEDIR = '/tmp/r'
 HOSTS = [
         '127.0.1.1',
@@ -30,7 +31,13 @@ for i in range(len(HOSTS)):
 
         m = HOSTS[i]
         s = HOSTS[(i+1)%len(HOSTS)]
-        templete = "('$m:$port', '$BASEDIR/redis-$port'), ('$s:$slave_port', '$BASEDIR/redis-$slave_port'),"
+
+        #old format
+        #templete = "('$m:$port', '$BASEDIR/redis-$port'), ('$s:$slave_port', '$BASEDIR/redis-$slave_port'),"
+
+        #new format:
+        master_name = '%s-%s' % (CLUSTER_NAME, port)
+        templete = "'$master_name:$m:$port:$BASEDIR/redis-$port', '$master_name:$s:$slave_port:$BASEDIR/redis-$slave_port',"
         print T(templete).s(globals())
         port += 1
 
