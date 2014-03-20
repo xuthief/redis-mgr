@@ -120,10 +120,10 @@ choose your config filename::
 
 following cmds will affect the online running cluster status:
 
-- start (should not)
-- stop                 <will ask for confirm>
-- randomkill           <safe> <will start it later>
-- reconfigproxy        <safe if master-slave relation is ok>
+- start                 <only if master/slave connection is not ok >
+- stop                  <will ask for confirm>
+- reconfigproxy         <only if proxy config is not match with sentinel state>
+- randomkill            <will start it later>
 - migrate
 
 start cluster::
@@ -162,7 +162,7 @@ run cmd on each master::
     2013-12-24 13:51:39,760 [MainThread] [INFO] [RedisServer:127.0.0.5:20003]: get "hello"
     [RedisServer:127.0.0.5:20003] world
 
-dump rdb::
+dump rdb for every redis instance::
 
     $ ./bin/deploy.py cluster0 rdb
 
@@ -277,7 +277,6 @@ and the 'migration' section will auto loaded next time::
     cluster0-22001 [redis:127.0.0.5:22001] <- 127.0.0.5:23001
     cluster0-22002 [redis:127.0.0.5:22002] <- 127.0.0.5:23002
     cluster0-22003 [redis:127.0.0.5:22003] <- 127.0.0.5:23003
-
 
 Dependency
 ==========
