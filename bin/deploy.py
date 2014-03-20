@@ -23,7 +23,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         self._rewrite_redis_config()
 
         self.all_redis = [ self._make_redis(s) for s in self.args['redis'] ]
-        masters = self.all_redis[::2]
+        masters = self.all_redis[::2] #TODO: this is not the real masters
 
         self.all_sentinel = [Sentinel(self.args['user'], hp, path, masters) for hp, path in self.args['sentinel'] ]
         self.all_nutcracker = [NutCracker(self.args['user'], hp, path, masters) for hp, path in self.args['nutcracker'] ]
@@ -263,6 +263,10 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         logging.info("old masters: %s" % sorted(old_masters, key=lambda x: x[1]))
         logging.info("new masters: %s" % sorted(new_masters, key=lambda x: x[1]))
 
+        if len(new_masters) != len(self.all_redis)/2:
+            logging.warn('new_masters count NOT right')
+            return
+
         if set(new_masters) == set(old_masters):
             logging.notice('masters list of proxy are already newest, we will not do reconfigproxy')
             return
@@ -272,6 +276,10 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         cmd = 'cp conf/nutcracker.conf conf/nutcracker.conf.%s' % t
 
         masters = self._active_masters()
+        if len(masters) != len(self.all_redis)/2:
+            logging.warn('masters count NOT right')
+            return
+
         for m in self.all_nutcracker:
             m._sshcmd(cmd) #backup config first.
             m.reconfig(masters)

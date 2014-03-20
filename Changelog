@@ -1,3 +1,11 @@
+- 2014-03-20 14:47:21
+
+	https://github.com/idning/redis-mgr/compare/90cd823...3436805
+
+	- new redis config format
+	- add cmds: migrate, clean, sentinel_reset, sentinel_failover
+	- cmd support more than one args (migrate a b)
+
 - 2014-02-24 12:01:41
 	- support more the one args(migrate a b)
 	- migrate of redis instance
