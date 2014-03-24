@@ -46,7 +46,7 @@ class MiscTask():
         for s in self._active_masters():
             t = Worker(s)
             t.start()
-            workers .append(t)
+            workers.append(t)
         for t in workers:
             t.join()
 

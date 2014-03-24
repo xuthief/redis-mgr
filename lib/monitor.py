@@ -337,7 +337,7 @@ class Monitor():
             cmd = "find log/ -name 'nutcracker.log.2*' -amin +1440 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null" # 1440 min = 1 day
             m._sshcmd(cmd)
 
-    def scheduler(self):
+    def scheduler(self, rdb_hour=8):
         '''
         start following threads:
             - failover
@@ -348,10 +348,15 @@ class Monitor():
         thread.start_new_thread(self.failover, ())
         thread.start_new_thread(self.web_server, ())
 
+
         cron = crontab.Cron()
         cron.add('* * * * *'   , self._monitor) # every minute
-        cron.add('0 9 * * *' , self.rdb, use_thread=True)                # every day
-        cron.add('0 10 * * *' , self.aof_rewrite, use_thread=True)        # every day
+
+        cron_time = '0 %s * * *' % rdb_hour
+        cron.add(cron_time, self.rdb, use_thread=True)                # every day
+
+        cron_time = '27 %s * * *' % rdb_hour
+        cron.add(cron_time, self.aof_rewrite, use_thread=True)        # every day
         cron.run()
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
