@@ -1,5 +1,4 @@
 deploy.py
-
 =========
 
 this script will deploy a redis cluster in ``10 minutes`` with:
@@ -9,6 +8,31 @@ this script will deploy a redis cluster in ``10 minutes`` with:
 - twemproxy
 
 you can deploy/start/stop/run_rediscmd/get status/reconfig proxy ...
+
+try it
+------
+
+1. complie ``redis`` , ``twemproxy`` and put them under binaries/ dir::
+
+    $ ll binaries/
+    total 19M
+    1735820 -rwxr-xr-x 1 ning ning 705K 2014-03-24 19:26 nutcracker
+    1735818 -rwxr-xr-x 1 ning ning 5.1M 2014-03-24 19:26 redis-sentinel
+    1735819 -rwxr-xr-x 1 ning ning 5.1M 2014-03-24 19:26 redis-server
+    1735815 -rwxr-xr-x 1 ning ning 3.8M 2014-03-24 19:26 redis-cli
+    1735809 -rwxr-xr-x 1 ning ning  28K 2014-03-24 19:26 redis-check-aof
+    1735801 -rwxr-xr-x 1 ning ning 3.7M 2014-03-24 19:26 redis-benchmark
+
+2. choose your config filename::
+
+    export REDIS_DEPLOY_CONFIG=conf && . bin/active
+
+3. edit conf/conf.py
+
+4. makesure you can ssh to target machine without input passwd
+5. run::
+
+    $ ./bin/deploy.py cluster0 -h
 
 config
 ------
@@ -191,7 +215,8 @@ modify config::
     $ ./bin/deploy.py cluster_offline0 mastercmd 'CONFIG SET save "10000 1000000"' -v
 
 enable auto-complete
-====================
+--------------------
+
 ::
 
     export REDIS_DEPLOY_CONFIG=conf
@@ -204,7 +229,7 @@ enable auto-complete
 
 
 gen_conf
-========
+--------
 
 on ``bin/gen_conf.py`` use this ::
 
@@ -223,7 +248,7 @@ it will gen the deploy.py config like this:
 .. image:: doc/twemproxy-sentinel-cluster.png
 
 migrante redis instance
-=======================
+-----------------------
 
 if we have 32 masters in 16 machines
 

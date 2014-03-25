@@ -23,11 +23,11 @@
 
 #path in the deploy machine
 BINARYS = {
-    'REDIS_SERVER_BINS' : '/home/ning/idning-github/redis/src/redis-*',
-    'REDIS_CLI' : '/home/ning/idning-github/redis/src/redis-cli',
-    'REDIS_SENTINEL_BINS' : '/home/ning/idning-github/redis/src/redis-sentinel',
-    'NUTCRACKER_BINS' : '/home/ning/idning-github/twemproxy/src/nutcracker',
-}
+    'REDIS_SERVER_BINS'   : 'binaries/redis-*',
+    'REDIS_CLI'           : 'binaries/redis-cli',
+    'REDIS_SENTINEL_BINS' : 'binaries/redis-sentinel',
+    'NUTCRACKER_BINS'     : 'binaries/nutcracker',
+}#TODO: check it
 
 RDB_SLEEP_TIME = 1
 
