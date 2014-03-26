@@ -313,11 +313,11 @@ class Monitor():
         masters = self._active_masters()
 
         i = 0
-        pause_cnt = len(self.all_nutcracker) / 3
+        pause_cnt = len(self.all_nutcracker) / 3 + 1
 
         for m in self.all_nutcracker:
             m.reconfig(masters)
-            if i % pause_cnt == 0:
+            if i % pause_cnt == 0 and i+1<len(self.all_nutcracker):
                 while 'yes' != raw_input('do you want to continue yes/ctrl-c: '):
                     pass
             i+=1
