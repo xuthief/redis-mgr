@@ -253,7 +253,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
             cmd = TT('ssh -n -f $user@$host "$cmd"', args)
             print common.system(cmd)
 
-    def reconfigproxy(self):
+    def reconfigproxy(self, force=0):
         '''
         sync the masters list from sentinel to proxy
         '''
@@ -267,7 +267,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
             logging.warn('new_masters count NOT right')
             return
 
-        if set(new_masters) == set(old_masters):
+        if set(new_masters) == set(old_masters) and not force:
             logging.notice('masters list of proxy are already newest, we will not do reconfigproxy')
             return
         logging.notice('we will do reconfigproxy')

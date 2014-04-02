@@ -324,6 +324,19 @@ class Monitor():
 
         logging.notice('reconfig all nutcracker Done!')
 
+    def upgrade_sentinel_danger(self):
+        '''
+        this may reset all masert-slave relation at sentinel
+        '''
+        for m in self.all_sentinel:
+            m.stop()
+            m.deploy()
+
+        for m in self.all_sentinel:
+            m.start()
+
+        logging.notice('reconfig all sentinel Done!')
+
     def log_rotate(self):
         '''
         log_rotate for nutcracker.
