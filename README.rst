@@ -307,7 +307,7 @@ Dependency
 ==========
 
 - pcl: https://github.com/idning/pcl
-- redis-py: https://github.com/andymccurdy/redis-py
+- redis-py: https://github.com/andymccurdy/redis-py (<=2.9.0)
 - argcomplete (optional): https://github.com/kislyuk/argcomplete
 
 Authors
