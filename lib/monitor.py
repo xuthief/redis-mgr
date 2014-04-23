@@ -118,6 +118,12 @@ class Monitor():
         '''
         self._live_nutcracker('forward_error_INC')
 
+    def live_nutcracker_client_error(self):
+        '''
+        monitor nutcracker client_error/s
+        '''
+        self._live_nutcracker('client_err_INC')
+
     def live_nutcracker_inqueue(self):
         '''
         monitor nutcracker forward_error/s
@@ -169,7 +175,7 @@ class Monitor():
             return val
 
         ret['qps'] = sum_redis('instantaneous_ops_per_sec')
-        ret['mem'] = sum_redis('used_memory_peak')/1024/1024
+        ret['mem'] = sum_redis('used_memory')/1024/1024
 
         print TT('$timestr ${qps}q/s ${mem}MB', ret)
         sys.stdout.flush()
@@ -184,6 +190,8 @@ class Monitor():
         for f in files[-cnt:]:
             for line in file(f):
                 self.__print_statlog_line(line)
+                if cnt > 2: #only show first line in each hour
+                    break
 
     def _monitor(self):
         '''
