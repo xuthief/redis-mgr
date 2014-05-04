@@ -308,7 +308,16 @@ def gen_op_help():
     sets = [m for m in methods if not m[0].startswith('_')]
 
     #sort the function list, based on the their position in the files
-    lines = file('bin/deploy.py').readlines() + file('lib/monitor.py').readlines()
+    files = [
+            'bin/deploy.py',
+            'lib/monitor.py',
+            'lib/misc_task.py',
+            'lib/migrate.py',
+            ]
+    lines = []
+    for f in files:
+        lines += file(f).readlines()
+
     def rank(x):
         name, func = x
         t = 'def ' + name
