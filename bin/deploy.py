@@ -55,7 +55,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
                         self.args['redis'][i] = dst
                         logging.info('replace %s as %s' % (src, dst))
 
-        pprint(self.args)
+        #pprint(self.args)
 
     def _make_redis(self, spec):
         server_name, host, port, path = spec.split(':')

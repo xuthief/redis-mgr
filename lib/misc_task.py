@@ -11,6 +11,40 @@ from multiprocessing import Process
 
 class MiscTask():
 
+    def keys(self, match):
+        '''
+        list keys (match='p-*')
+        '''
+
+        class Worker(Process):
+            def __init__(self, s):
+                super(Worker, self).__init__()
+                self.s = s
+
+            def run(self):
+                s = self.s
+                cnt = 0
+                START = time.time()
+                cursor = '0'
+
+                conn = redis.Redis(s.args['host'], s.args['port'])
+                while True:
+                    cursor, keys = conn.scan(cursor, match, 10000)
+                    for k in keys:
+                        print s, 'key', cnt, k
+                        cnt += 1
+
+                    if '0' == cursor or not keys :
+                        break
+
+        workers = []
+        for s in self._active_masters():
+            t = Worker(s)
+            t.start()
+            workers.append(t)
+        for t in workers:
+            t.join()
+
     def cleankeys(self, match):
         '''
         cleankeys (match='p-*')

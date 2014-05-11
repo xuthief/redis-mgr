@@ -1,3 +1,10 @@
+- 2014-05-12 07:06:07
+	- use hashtag {}
+	- add keys: ./bin/deploy.py cluster0 keys '*' | wc -l
+	- add checkkcfg
+
+
+
 - 2014-03-20 14:47:21
 
 	https://github.com/idning/redis-mgr/compare/90cd823...3436805

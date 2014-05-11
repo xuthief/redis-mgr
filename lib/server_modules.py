@@ -323,6 +323,7 @@ $cluster_name:
   preconnect: true
   auto_eject_hosts: false
   redis: true
+  hash_tag: "{}"
   backlog: 512
   timeout: 400
   client_connections: 0
