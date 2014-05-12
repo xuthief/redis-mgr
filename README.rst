@@ -7,7 +7,7 @@ this script will deploy a redis cluster in ``10 minutes`` with:
 - redis-sentinel
 - twemproxy
 
-you can deploy/start/stop/run_rediscmd/get status/reconfig proxy ...
+you can deploy/auto-failover/monitor/migrate/rolling-upgrade ...
 
 try it
 ------

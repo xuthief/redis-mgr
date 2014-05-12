@@ -356,7 +356,8 @@ class Monitor():
                     if kv[k] + 1 != int(conn.incr(k)):
                         return False
                 return True
-            except:
+            except Exception, e:
+                logging.warn('check_kv got exception : %s' % e)
                 return False
 
         for n in self.all_nutcracker:
