@@ -229,8 +229,6 @@ class Monitor():
             infos[str(r)] = r._info_dict()
         self._check_warning(infos)
 
-        self.check_proxy_config()
-
         self.check_kv()
 
         ret = {
@@ -333,8 +331,8 @@ class Monitor():
             if c != base:
                 logging.warn('config not same: %s vs %s' % (self.all_nutcracker[0], n))
                 logging.error('config not same: %s vs %s' % (self.all_nutcracker[0], n))
-                logging.info(base)
-                logging.info(c)
+                logging.debug(base)
+                logging.debug(c)
 
     def check_kv(self):
         '''
@@ -426,13 +424,15 @@ class Monitor():
 
 
         cron = crontab.Cron()
-        cron.add('* * * * *'   , self._monitor) # every minute
+        cron.add('* * * * *'   , self._monitor)                             # every minute
+
+        cron.add('* * * * *'   , self.check_proxy_config, use_thread=True)  # every minute, check_proxy_config may hang, so we use thread
 
         cron_time = '0 %s * * *' % rdb_hour
-        cron.add(cron_time, self.rdb, use_thread=True)                # every day
+        cron.add(cron_time, self.rdb, use_thread=True)                      # every day
 
         cron_time = '27 %s * * *' % rdb_hour
-        cron.add(cron_time, self.aof_rewrite, use_thread=True)        # every day
+        cron.add(cron_time, self.aof_rewrite, use_thread=True)              # every day
         cron.run()
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
