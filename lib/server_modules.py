@@ -426,6 +426,13 @@ $cluster_name:
         else:
             logging.error('%s is down' % self)
 
+    def get_config(self):
+        '''return currnet config file content, Ignore the listen: line'''
+        cmd = TT('cat $conf', self.args)
+        content = self._run(self._remote_cmd(cmd))
+        content = re.sub('listen: .*', '', content)
+        return content
+
     def get_masters(self):
         '''return currnet master list of (host:port, name)'''
         cmd = TT('cat $conf', self.args)

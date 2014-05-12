@@ -50,6 +50,12 @@ class Migrate():
             src_host_port = TT('$host:$port', src_redis.args)
             if not _redis_in_cluster(src_redis.args['host'], src_redis.args['port']):
                 raise Exception('src_redis %s not found in this cluster' % src_redis)
+            if _redis_in_cluster(dst_redis.args['host'], dst_redis.args['port']):
+                raise Exception('dst_redis %s already in this cluster' % dst_redis)
+
+            #check if dst exists
+            if dst_redis._alive():
+                raise Exception('dst_redis is alive')
 
             #check the old master-slave is ok
             sentinel = self._get_available_sentinel()
@@ -61,13 +67,14 @@ class Migrate():
                 raise Exception('master %s not ok for %s' % (master, master_name))
             if len(slaves) == 0:
                 raise Exception('no slave for %s' % master_name)
-            for slave in slaves:
-                if slave['is_disconnected']:
-                    raise Exception('slave %s not ok for %s' % (slave, master_name))
 
-            #check if dst exists
-            if dst_redis._alive():
-                raise Exception('dst_redis is alive')
+            live_slaves = 0
+            for slave in slaves:
+                if not slave['is_disconnected']:
+                    live_slaves += 1
+
+            if live_slaves == 0 and src_redis.args['host'] == master['ip'] and src_redis.args['port'] == master['port']:
+                raise Exception('no slave and you want to migrate master')
 
         def force_src_be_slave():
             sentinel = self._get_available_sentinel()
@@ -82,9 +89,13 @@ class Migrate():
 
         def add_dst_as_slave():
             sentinel = self._get_available_sentinel()
-            h = src_redis._info_dict()['master_host']
-            p = src_redis._info_dict()['master_port']
 
+            master_name = src_redis.args['server_name']
+            master = sentinel.get_raw_masters()[master_name]
+            h = master['ip']
+            p = master['port']
+            if not h or not p:
+                raise Exception('can not find master')
             dst_redis.slaveof(h, p)
 
             wait_repl(None, dst_redis)

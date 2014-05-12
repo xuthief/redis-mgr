@@ -2,6 +2,7 @@
 	- use hashtag {}
 	- add keys: ./bin/deploy.py cluster0 keys '*' | wc -l
 	- add checkkcfg
+	- migrate slave work when slave down. 
 
 
 

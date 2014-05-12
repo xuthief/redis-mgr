@@ -147,6 +147,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         '''
         get status of all instance(redis/sentinel/nutcracker) in this cluster
         '''
+        pprint(self.args)
         self._doit('status')
 
         sentinel = self._get_available_sentinel()
@@ -252,6 +253,17 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
             args['host'] = h
             cmd = TT('ssh -n -f $user@$host "$cmd"', args)
             print common.system(cmd)
+
+    def check_proxy_config(self):
+        base = self.all_nutcracker[0].get_config()
+        for n in self.all_nutcracker[1:]:
+            c = n.get_config()
+            if c != base:
+                print common.to_red('all_nutcracker[0].get_config():')
+                print base
+
+                print common.to_red(n)
+                print c
 
     def reconfigproxy(self, force=0):
         '''
