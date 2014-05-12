@@ -4,6 +4,7 @@
 	- add checkkcfg cmd(also in monitor task every minute)
 	- add check_kv cmd(random incr kv)every minute
 	- migrate slave work when slave down. 
+	- config added: REDIS_MGR_CHECK_PREFIX = 'redis-mgr-check-'
 
 - 2014-03-20 14:47:21
 
