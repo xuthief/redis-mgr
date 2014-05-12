@@ -255,16 +255,6 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
             cmd = TT('ssh -n -f $user@$host "$cmd"', args)
             print common.system(cmd)
 
-    def check_proxy_config(self):
-        base = self.all_nutcracker[0].get_config()
-        for n in self.all_nutcracker[1:]:
-            c = n.get_config()
-            if c != base:
-                logging.warn('config not same: %s vs %s' % (self.all_nutcracker[0], n))
-                logging.error('config not same: %s vs %s' % (self.all_nutcracker[0], n))
-                logging.info(base)
-                logging.info(c)
-
     def reconfigproxy(self, force=0):
         '''
         sync the masters list from sentinel to proxy

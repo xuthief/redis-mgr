@@ -231,6 +231,8 @@ class Monitor():
 
         self.check_proxy_config()
 
+        self.check_kv()
+
         ret = {
             'ts': now,
             'timestr': common.format_time_to_min(now),
@@ -320,6 +322,47 @@ class Monitor():
         #while True:
             #self._monitor()
             #time.sleep(60)
+
+    def check_proxy_config(self):
+        '''
+        check if all proxy has same config
+        '''
+        base = self.all_nutcracker[0].get_config()
+        for n in self.all_nutcracker[1:]:
+            c = n.get_config()
+            if c != base:
+                logging.warn('config not same: %s vs %s' % (self.all_nutcracker[0], n))
+                logging.error('config not same: %s vs %s' % (self.all_nutcracker[0], n))
+                logging.info(base)
+                logging.info(c)
+
+    def check_kv(self):
+        '''
+        one all porxy, get/set keys and check
+        '''
+
+        def check(host, port):
+            try:
+                conn = redis.Redis(host, port)
+                prefix = 'redis-mgr-check-'
+
+                kv = {}
+                for i in range(100):
+                    k = prefix+str(i)
+                    kv[k] = int(conn.incr(k))
+
+                for i in range(100):
+                    k = prefix+str(i)
+                    if kv[k] + 1 != int(conn.incr(k)):
+                        return False
+                return True
+            except:
+                return False
+
+        for n in self.all_nutcracker:
+            if not check(n.args['host'], n.args['port']):
+                logging.warn("check_kv got exception on %s" % n)
+                logging.error("check_kv got exception on %s" % n)
 
     def upgrade_nutcracker(self):
         '''
