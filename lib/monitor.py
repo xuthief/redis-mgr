@@ -373,11 +373,11 @@ class Monitor():
         pause_cnt = len(self.all_nutcracker) / 3 + 1
 
         for m in self.all_nutcracker:
-            if self.cmdline.filter and strstr(str(m), self.cmdline.filter):
+            if self.cmdline.filter and not strstr(str(m), self.cmdline.filter):
+                logging.notice("Ignore :%s" % m)
+            else:
                 logging.notice("Upgrade :%s" % m)
                 m.reconfig(masters)
-            else:
-                logging.notice("Ignore :%s" % m)
             if i % pause_cnt == 0 and i+1<len(self.all_nutcracker):
                 while 'yes' != raw_input('do you want to continue yes/ctrl-c: '):
                     pass
