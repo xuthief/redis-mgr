@@ -1,10 +1,8 @@
 - 2014-05-12 07:06:07
 	- use hashtag {}
 	- add keys: ./bin/deploy.py cluster0 keys '*' | wc -l
-	- add checkkcfg
+	- add checkkcfg(also in monitor task every second)
 	- migrate slave work when slave down. 
-
-
 
 - 2014-03-20 14:47:21
 

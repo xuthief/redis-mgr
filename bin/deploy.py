@@ -260,11 +260,10 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         for n in self.all_nutcracker[1:]:
             c = n.get_config()
             if c != base:
-                print common.to_red('all_nutcracker[0].get_config():')
-                print base
-
-                print common.to_red(n)
-                print c
+                logging.warn('config not same: %s vs %s' % (self.all_nutcracker[0], n))
+                logging.error('config not same: %s vs %s' % (self.all_nutcracker[0], n))
+                logging.info(base)
+                logging.info(c)
 
     def reconfigproxy(self, force=0):
         '''

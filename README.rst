@@ -332,6 +332,8 @@ TODO
 7. #a live command for cluster overview info(qps, mem, hit-rate)
 8. make start cmd reentrant(slaveof cmd)
 9. add ``max-mem`` config. on migration, makesure the max-mem config the same.
+10. #upgrade nutcracker instance, support --filter
+11. #add check_proxy_cfg
 
 Graph
 =====

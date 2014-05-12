@@ -229,6 +229,8 @@ class Monitor():
             infos[str(r)] = r._info_dict()
         self._check_warning(infos)
 
+        self.check_proxy_config()
+
         ret = {
             'ts': now,
             'timestr': common.format_time_to_min(now),
