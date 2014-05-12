@@ -18,7 +18,8 @@ from misc_task import MiscTask
 from webserver import WebServer
 
 class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
-    def __init__(self, args):
+    def __init__(self, args, cmdline):
+        self.cmdline = cmdline
         self.args = args
         self._rewrite_redis_config()
 
@@ -371,14 +372,15 @@ def main():
     parser.add_argument('op', metavar='op', choices=discover_op(),
         help=gen_op_help())
     parser.add_argument('cmd', nargs='*', help='the redis/ssh cmd like "INFO"')
+    parser.add_argument('--filter', help="filter of redis/proxy instance", default='')
 
     LOGPATH = os.path.join(WORKDIR, 'log/deploy.log')
     args = common.parse_args2(LOGPATH, parser)
     common.update_logging_level(logging.root, logfile_level=logging.DEBUG)
     if args.cmd:
-        eval('Cluster(conf.%s).%s(%s)' % (args.target, args.op, '*args.cmd') )
+        eval('Cluster(conf.%s, args).%s(%s)' % (args.target, args.op, '*args.cmd') )
     else:
-        eval('Cluster(conf.%s).%s()' % (args.target, args.op) )
+        eval('Cluster(conf.%s, args).%s()' % (args.target, args.op) )
 
 if __name__ == "__main__":
     main()

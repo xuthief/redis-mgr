@@ -258,6 +258,7 @@ class Monitor():
         def check_redis(node, info):
             if not info or 'uptime_in_seconds' not in info:
                 logging.warn('%s is down' % node)
+                logging.error('%s is down' % node)
             now = time.time()
             redis_spec = {
                     'connected_clients':          (0, 1000),
@@ -285,6 +286,7 @@ class Monitor():
             '''
             if not info or 'uptime' not in info:
                 logging.warn('%s is down' % node)
+                logging.error('%s is down' % node)
 
             nutcracker_cluster_spec = {
                     'client_connections':  (0, 10000),
@@ -318,13 +320,20 @@ class Monitor():
             #time.sleep(60)
 
     def upgrade_nutcracker(self):
+        '''
+        upgrade nutcracker instance, support --filter
+        '''
         masters = self._active_masters()
 
         i = 0
         pause_cnt = len(self.all_nutcracker) / 3 + 1
 
         for m in self.all_nutcracker:
-            m.reconfig(masters)
+            if self.cmdline.filter and strstr(str(m), self.cmdline.filter):
+                logging.notice("Upgrade :%s" % m)
+                m.reconfig(masters)
+            else:
+                logging.notice("Ignore :%s" % m)
             if i % pause_cnt == 0 and i+1<len(self.all_nutcracker):
                 while 'yes' != raw_input('do you want to continue yes/ctrl-c: '):
                     pass
