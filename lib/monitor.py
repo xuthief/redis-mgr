@@ -344,7 +344,7 @@ class Monitor():
         def check(host, port):
             try:
                 conn = redis.Redis(host, port)
-                prefix = 'redis-mgr-check-'
+                prefix = conf.REDIS_MGR_CHECK_PREFIX
 
                 kv = {}
                 for i in range(100):
