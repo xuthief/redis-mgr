@@ -229,7 +229,6 @@ class Monitor():
             infos[str(r)] = r._info_dict()
         self._check_warning(infos)
 
-        self.check_kv()
 
         ret = {
             'ts': now,
@@ -289,6 +288,7 @@ class Monitor():
             if not info or 'uptime' not in info:
                 logging.warn('%s is down' % node)
                 logging.error('%s is down' % node)
+                return
 
             nutcracker_cluster_spec = {
                     'client_connections':  (0, 10000),
@@ -339,21 +339,26 @@ class Monitor():
         one all porxy, get/set keys and check
         '''
 
+        @common.retryv2(Exception, tries=3, delay=0.5, backoff=1, logfun=logging.debug)
+        def docheck(host, port):
+            conn = redis.Redis(host, port)
+            prefix = conf.REDIS_MGR_CHECK_PREFIX
+
+            kv = {}
+            for i in range(100):
+                k = prefix+str(i)
+                kv[k] = int(conn.incr(k))
+
+            for i in range(100):
+                k = prefix+str(i)
+                if kv[k] + 1 != int(conn.incr(k)):
+                    logging.warn('check_kv inc not correct: %s' % k)
+                    return False
+            return True
+
         def check(host, port):
             try:
-                conn = redis.Redis(host, port)
-                prefix = conf.REDIS_MGR_CHECK_PREFIX
-
-                kv = {}
-                for i in range(100):
-                    k = prefix+str(i)
-                    kv[k] = int(conn.incr(k))
-
-                for i in range(100):
-                    k = prefix+str(i)
-                    if kv[k] + 1 != int(conn.incr(k)):
-                        return False
-                return True
+                return docheck(host, port)
             except Exception, e:
                 logging.warn('check_kv got exception : %s' % e)
                 return False
@@ -426,7 +431,8 @@ class Monitor():
         cron = crontab.Cron()
         cron.add('* * * * *'   , self._monitor)                             # every minute
 
-        cron.add('* * * * *'   , self.check_proxy_config, use_thread=True)  # every minute, check_proxy_config may hang, so we use thread
+        cron.add('* * * * *'   , self.check_proxy_config, use_thread=True)  # every minute, (check_proxy_config may hang, so we use thread)
+        cron.add('* * * * *'   , self.check_kv, use_thread=True)            # every minute, (check_kv may use more than 1 minute, so we use thread)
 
         cron_time = '0 %s * * *' % rdb_hour
         cron.add(cron_time, self.rdb, use_thread=True)                      # every day

@@ -222,6 +222,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         cmd = 'cp data/dump.rdb data/dump.rdb.%s' % t
         for s in self.all_redis:
             s._sshcmd(cmd)
+            time.sleep(conf.RDB_SLEEP_TIME)
 
     def aof_rewrite(self):
         '''
