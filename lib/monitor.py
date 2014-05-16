@@ -364,6 +364,7 @@ class Monitor():
                 return False
 
         for n in self.all_nutcracker:
+            logging.info('checking: %s' % n)
             if not check(n.args['host'], n.args['port']):
                 logging.warn("check_kv got exception on %s" % n)
                 logging.error("check_kv got exception on %s" % n)

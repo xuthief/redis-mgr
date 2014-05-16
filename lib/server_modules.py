@@ -431,7 +431,8 @@ $cluster_name:
         cmd = TT('cat $conf', self.args)
         content = self._run(self._remote_cmd(cmd))
         content = re.sub('listen: .*', '', content)
-        return content
+        content = re.sub('Permanently added.*', '', content)
+        return content.strip()
 
     def get_masters(self):
         '''return currnet master list of (host:port, name)'''
