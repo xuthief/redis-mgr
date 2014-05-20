@@ -12,6 +12,14 @@ you can deploy/auto-failover/monitor/migrate/rolling-upgrade ...
 try it
 ------
 
+0. prepare::
+
+    sudo apt-get install git python python-pip
+    pip install redis
+    pip install -e git://github.com/idning/pcl.git#egg=pcl
+    pip install -e git://github.com/kislyuk/argcomplete.git#egg=argcomplete
+    git clone https://github.com/idning/redis-mgr.git
+
 1. complie ``redis`` , ``twemproxy`` and put them under binaries/ dir::
 
     $ ll binaries/
