@@ -39,6 +39,7 @@ class MiscTask():
 
         workers = []
         for s in self._active_masters():
+            logging.info('get key from %s' % s)
             t = Worker(s)
             t.start()
             workers.append(t)
@@ -78,6 +79,7 @@ class MiscTask():
 
         workers = []
         for s in self._active_masters():
+            logging.info('clean key on %s' % s)
             t = Worker(s)
             t.start()
             workers.append(t)
