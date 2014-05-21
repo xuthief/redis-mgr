@@ -29,12 +29,12 @@ class MiscTask():
 
                 conn = redis.Redis(s.args['host'], s.args['port'])
                 while True:
-                    cursor, keys = conn.scan(cursor, match, 10000)
+                    cursor, keys = conn.scan(cursor, match, 1000)
                     for k in keys:
                         print s, 'key', cnt, k
                         cnt += 1
 
-                    if '0' == cursor or not keys :
+                    if '0' == cursor:
                         break
 
         workers = []
@@ -64,10 +64,8 @@ class MiscTask():
 
                 conn = redis.Redis(s.args['host'], s.args['port'])
                 while True:
-                    cursor, keys = conn.scan(cursor, match, 10000)
+                    cursor, keys = conn.scan(cursor, match, 1000)
                     pipe = conn.pipeline(transaction=False)
-                    if not keys:
-                        break
                     for k in keys:
                         pipe.delete(k)
                         cnt += 1
@@ -75,7 +73,9 @@ class MiscTask():
                             msg = '%s [key:%s]: %d keys done in %s seconds ' % (s, k, cnt, time.time() - START)
                             logging.info(msg)
                     pipe.execute()
-                logging.notice('%s done' % s)
+                    if '0' == cursor :
+                        break
+                logging.notice('%s done, cleankeys: %d' % (s, cnt))
 
         workers = []
         for s in self._active_masters():

@@ -12,8 +12,9 @@ def clean_line(line):
 #http://localhost:8000/cgi/live.py?conf=conf&cluster=cluster0&cmd=live_master_mem
 @nothrow(IOError)
 def main():
-    print "HTTP/1.0 200 OK"
+    #print "HTTP/1.0 200 OK"
     print "Content-Type: application/x-javascript"
+    print ""
     print ""
     print 'SUPPORT CMD: live_master_qps/live_master_mem/live_overview/history n'
 
