@@ -1,6 +1,8 @@
 deploy.py
 =========
 
+.. image:: doc/twemproxy-sentinel-cluster.png
+
 this script will deploy a redis cluster in ``10 minutes`` with:
 
 - redis
@@ -8,6 +10,7 @@ this script will deploy a redis cluster in ``10 minutes`` with:
 - twemproxy
 
 you can deploy/auto-failover/monitor/migrate/rolling-upgrade ...
+
 
 try it
 ------
@@ -35,9 +38,12 @@ try it
 
     export REDIS_DEPLOY_CONFIG=conf && . bin/active
 
+   you can use a private config file ``confconf_private.py`` and do ``export REDIS_DEPLOY_CONFIG=conf_private``
+
 3. edit conf/conf.py
 
-4. makesure you can ssh to target machine without input passwd
+4. makesure you can ssh to target machine without input passwd(use ``ssh-copy-id`` )
+
 5. run::
 
     $ ./bin/deploy.py cluster0 -h
