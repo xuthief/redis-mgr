@@ -31,11 +31,14 @@ class MiscTask():
                 while True:
                     cursor, keys = conn.scan(cursor, match, 1000)
                     for k in keys:
-                        print s, 'key', cnt, k
+                        #print s, 'key', cnt, k
+                        sys.stdout.write('%s\n' % k)
                         cnt += 1
 
                     if '0' == cursor:
                         break
+
+                logging.notice('%s done, keys: %d' % (s, cnt))
 
         workers = []
         for s in self._active_masters():

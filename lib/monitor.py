@@ -364,7 +364,7 @@ class Monitor():
                 return False
 
         for n in self.all_nutcracker:
-            logging.info('checking: %s' % n)
+            logging.debug('checking: %s' % n)
             if not check(n.args['host'], n.args['port']):
                 logging.warn("check_kv got exception on %s" % n)
                 logging.error("check_kv got exception on %s" % n)
@@ -417,6 +417,21 @@ class Monitor():
             cmd = "find log/ -name 'nutcracker.log.2*' -amin +1440 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null" # 1440 min = 1 day
             m._sshcmd(cmd)
 
+    def _supervisor(self):
+        '''
+        supervisor for proxy (every 5 seconds)
+        '''
+        while True:
+            try:
+                for m in self.all_nutcracker:
+                    if not m._alive():
+                        logging.warning("%s down, restart it" % m)
+                        m.start()
+            except Exception, e:
+                logging.warn('we got exception: %s on _supervisor task' % e)
+                logging.exception(e)
+            time.sleep(5)
+
     def scheduler(self, rdb_hour=8):
         '''
         start following threads:
@@ -427,7 +442,7 @@ class Monitor():
         '''
         thread.start_new_thread(self.failover, ())
         thread.start_new_thread(self.web_server, ())
-
+        thread.start_new_thread(self._supervisor, ())
 
         cron = crontab.Cron()
         cron.add('* * * * *'   , self._monitor)                             # every minute
