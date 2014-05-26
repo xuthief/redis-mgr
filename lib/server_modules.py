@@ -307,7 +307,12 @@ class NutCracker(Base):
         self.args['status_port'] = self.args['port'] + 1000
 
         self.args['startcmd']    = TT('bin/nutcracker -d -c $conf -o $logfile -p $pidfile -s $status_port -v 4', self.args)
-        self.args['runcmd']      = self.args['startcmd']
+        self.args['runcmd']      = TT('bin/nutcracker -d -c $conf -o $logfile -p $pidfile -s $status_port', self.args)
+
+        if 'MON_BINS' in conf.BINARYS and os.path.exists(conf.BINARYS['MON_BINS']):
+            self.args['startcmd']    = TT('bin/mon -a 60 -d "bin/nutcracker -c $conf -o $logfile -p $pidfile -s $status_port -v 4"', self.args) # put -d at mon
+            self.args['runcmd']      = TT('bin/nutcracker -c $conf -o $logfile -p $pidfile -s $status_port', self.args)
+
         self._last_info = None
 
     def _alive(self):
@@ -342,6 +347,9 @@ $cluster_name:
     def _pre_deploy(self):
         self.args['BINS'] = conf.BINARYS['NUTCRACKER_BINS']
         self._run(TT('cp $BINS $localdir/bin/', self.args))
+        if 'MON_BINS' in conf.BINARYS and os.path.exists(conf.BINARYS['MON_BINS']):
+            self.args['MON_BINS'] = conf.BINARYS['MON_BINS']
+            self._run(TT('cp $MON_BINS $localdir/bin/', self.args))
 
         fout = open(TT('$localdir/conf/nutcracker.conf', self.args), 'w+')
         fout.write(self._gen_conf())

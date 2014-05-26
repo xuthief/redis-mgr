@@ -23,9 +23,9 @@ try it
     pip install -e git://github.com/kislyuk/argcomplete.git#egg=argcomplete
     git clone https://github.com/idning/redis-mgr.git
 
-1. complie ``redis`` , ``twemproxy`` and put them under binaries/ dir::
+1. complie ``redis`` , ``twemproxy`` and put them under ``_binaries/`` dir::
 
-    $ ll binaries/
+    $ ll _binaries/
     total 19M
     1735820 -rwxr-xr-x 1 ning ning 705K 2014-03-24 19:26 nutcracker
     1735818 -rwxr-xr-x 1 ning ning 5.1M 2014-03-24 19:26 redis-sentinel
@@ -317,13 +317,27 @@ and the 'migration' section will auto loaded next time::
     cluster0-22002 [redis:127.0.0.5:22002] <- 127.0.0.5:23002
     cluster0-22003 [redis:127.0.0.5:22003] <- 127.0.0.5:23003
 
+use mon for supervisor of twemproxy
+-----------------------------------
+
+mon: https://github.com/visionmedia/mon
+
+this is optional for redis-mgr:
+
+1. complile mon and put it in ``_binaries/`` dir.
+2. add config::
+
+    BINARYS['MON_BINS'] = '_binaries/mon';
+
+3. ./bin/deploy.py cluster0 upgrade_nutcracker
+
 Dependency
 ==========
 
 - pcl: https://github.com/idning/pcl
 - redis-py: https://github.com/andymccurdy/redis-py (<=2.9.0)
 - argcomplete (optional): https://github.com/kislyuk/argcomplete
-
+- mon (optional) https://github.com/visionmedia/mon
 - if you are using python 2.7.3, you will need this patch to disable noise from threading: http://bugs.python.org/msg158754
 
 Authors

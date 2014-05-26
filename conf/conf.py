@@ -30,6 +30,8 @@ BINARYS = {
     #'NUTCRACKER_BINS'     : '/home/ning/idning-github/twemproxy/src/nutcracker',
 }#TODO: check it
 
+BINARYS['MON_BINS'] = '_binaries/mon';
+
 REDIS_MGR_CHECK_PREFIX = 'redis-mgr-check-'
 
 RDB_SLEEP_TIME = 1
