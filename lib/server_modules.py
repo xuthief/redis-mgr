@@ -42,7 +42,7 @@ class Base:
         self._init_dir()
 
         cmd = TT('rsync -ravP $localdir/ $user@$host:$path 1>/dev/null 2>/dev/null', self.args)
-        self._run(cmd)
+        self._run(cmd, timeout=5)
 
     def _gen_control_script(self):
         content = file('conf/control.sh').read()
@@ -62,8 +62,8 @@ class Base:
 
         logging.debug('starting %s' % self)
         t1 = time.time()
-        sleeptime = .1
-        self._run(self._remote_start_cmd())
+        sleeptime = .5
+        self._run(self._remote_start_cmd(), timeout=5)
 
         while not self._alive():
             lets_sleep(sleeptime)
@@ -81,7 +81,7 @@ class Base:
             logging.warn('%s already stop' %(self) )
             return
 
-        self._run(self._remote_stop_cmd())
+        self._run(self._remote_stop_cmd(), timeout=5)
         t1 = time.time()
         while self._alive():
             lets_sleep()
@@ -99,20 +99,20 @@ class Base:
         logging.info('log of %s' % self)
         print self._run(self._remote_cmd(cmd))
 
-    def _sshcmd(self, cmd):
+    def _sshcmd(self, cmd, timeout=60*60*24*30):
         '''
         run a benchmark cmd on this remote machine
         '''
         remote_cmd = self._remote_cmd(cmd)
         logging.info(remote_cmd)
-        print self._run(remote_cmd)
+        print self._run(remote_cmd, timeout)
 
     def _alive(self):
         logging.warn("_alive: not implement")
 
     def _init_dir(self):
         raw_cmd = TT('mkdir -p $path', self.args)
-        self._run(self._remote_cmd(raw_cmd, chdir=False))
+        self._run(self._remote_cmd(raw_cmd, chdir=False), timeout=5)
 
     def _remote_start_cmd(self):
         cmd = TT("./${name}_control start", self.args)
@@ -132,8 +132,12 @@ class Base:
         else:
             return TT('ssh -n -f $user@$host "$cmd"', args)
 
-    def _run(self, raw_cmd):
-        ret = common.system(raw_cmd, logging.debug)
+    def _run(self, raw_cmd, timeout=60*60*24*30):
+        #ret = common.system(raw_cmd, logging.debug)
+        ret = system_with_timeout(raw_cmd, logging.debug, timeout)
+        if ret == None:
+            logging.warn("cmd timeout: " + raw_cmd)
+        ret = str(ret)
         logging.debug('return : [%d] [%s] ' % (len(ret), common.shorten(ret)) )
         return ret
 
@@ -154,7 +158,7 @@ class RedisServer(Base):
 
     def _info_dict(self):
         cmd = TT('$REDIS_CLI -h $host -p $port INFO', self.args)
-        info = self._run(cmd)
+        info = self._run(cmd, timeout=5)
 
         info = [line.split(':', 1) for line in info.split('\r\n') if not line.startswith('#')]
         info = [i for i in info if len(i)>1]
@@ -162,7 +166,7 @@ class RedisServer(Base):
 
     def _ping(self):
         cmd = TT('$REDIS_CLI -h $host -p $port PING', self.args)
-        return self._run(cmd)
+        return self._run(cmd, timeout=5)
 
     def _alive(self):
         return strstr(self._ping(), 'PONG')
@@ -412,7 +416,7 @@ $cluster_name:
 
     def _raw_info_dict(self):
         try:
-            ret = telnetlib.Telnet(self.args['host'], self.args['status_port']).read_all()
+            ret = telnetlib.Telnet(self.args['host'], self.args['status_port'], timeout=2).read_all()
             return common.json_decode(ret)
         except Exception, e:
             logging.debug('--- can not get _info_dict of nutcracker, [Exception: %s]' % (e, ))
@@ -429,7 +433,7 @@ $cluster_name:
     def get_config(self):
         '''return currnet config file content, Ignore the listen: line'''
         cmd = TT('cat $conf', self.args)
-        content = self._run(self._remote_cmd(cmd))
+        content = self._run(self._remote_cmd(cmd), timeout=5)
         content = re.sub('listen: .*', '', content)
         content = re.sub('Permanently added.*', '', content)
         return content.strip()
@@ -437,7 +441,7 @@ $cluster_name:
     def get_masters(self):
         '''return currnet master list of (host:port, name)'''
         cmd = TT('cat $conf', self.args)
-        content = self._run(self._remote_cmd(cmd))
+        content = self._run(self._remote_cmd(cmd), timeout=5)
         logging.debug('current proxy config: %s' % content)
 
         def parse_line(line):

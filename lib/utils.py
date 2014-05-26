@@ -45,6 +45,21 @@ def lets_sleep(SLEEP_TIME = 0.1):
 def TT(template, args): #todo: modify all
     return Template(template).substitute(args)
 
+def system_with_timeout(cmd, log_fun=logging.info, timeout=60*60*24*30):
+    if log_fun: log_fun(cmd)
+    from subprocess import Popen, PIPE
+    import signal
+    tstart = time.time()
+    p = Popen(cmd, shell=True, bufsize = 102400, stdout=PIPE, stderr=PIPE)
+    while p.poll() is None: #python2.7 Popen.wait() has no timeout
+        time.sleep(time.time() - tstart)
+        if time.time() - tstart > timeout:
+            os.kill(p.pid, signal.SIGKILL)
+            os.waitpid(-1, os.WNOHANG)
+            return None
+    r = p.stdout.read()
+    return r
+
 def nothrow(ExceptionToCheck=Exception, logger=None):
     def deco_retry(f):
         def f_retry(*args, **kwargs):

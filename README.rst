@@ -324,6 +324,8 @@ Dependency
 - redis-py: https://github.com/andymccurdy/redis-py (<=2.9.0)
 - argcomplete (optional): https://github.com/kislyuk/argcomplete
 
+- if you are using python 2.7.3, you will need this patch to disable noise from threading: http://bugs.python.org/msg158754
+
 Authors
 =======
 

@@ -284,7 +284,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
             return
 
         for m in self.all_nutcracker:
-            m._sshcmd(cmd) #backup config first.
+            m._sshcmd(cmd, timeout=5) #backup config first.
             m.reconfig(masters)
         logging.notice('reconfig all nutcracker Done!')
 
