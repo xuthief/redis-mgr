@@ -442,7 +442,7 @@ class Monitor():
         '''
         thread.start_new_thread(self.failover, ())
         thread.start_new_thread(self.web_server, ())
-        thread.start_new_thread(self._supervisor, ())
+        #thread.start_new_thread(self._supervisor, ())                      #this can not work with reconfigproxy
 
         cron = crontab.Cron()
         cron.add('* * * * *'   , self._monitor)                             # every minute
