@@ -3,13 +3,13 @@ deploy.py
 
 .. image:: doc/twemproxy-sentinel-cluster.png
 
-this script will deploy a redis cluster in ``10 minutes`` with:
+this script will deploy a redis cluster in **10 minutes**, with:
 
 - redis
 - redis-sentinel
 - twemproxy
 
-you can deploy/auto-failover/monitor/migrate/rolling-upgrade ...
+you can deploy/auto-failover/monitor/migrate and perform rolling-upgrades.
 
 
 try it
@@ -23,7 +23,7 @@ try it
     pip install -e git://github.com/kislyuk/argcomplete.git#egg=argcomplete
     git clone https://github.com/idning/redis-mgr.git
 
-1. complie ``redis`` , ``twemproxy`` and put them under ``_binaries/`` dir::
+1. compile ``redis`` and ``twemproxy`` and put them under ``_binaries/`` dir::
 
     $ ll _binaries/
     total 19M
@@ -42,7 +42,7 @@ try it
 
 3. edit conf/conf.py
 
-4. makesure you can ssh to target machine without input passwd(use ``ssh-copy-id`` )
+4. make sure you can ssh to target machine without having to input a password (use ``ssh-copy-id``)
 
 5. run::
 
@@ -106,7 +106,7 @@ and ``twemproxy`` config::
         - 127.0.0.5:20001:1 cluster0-20001
 
 the name ``cluster0-20000`` is named by the orig master,
-if slave use a different port, the server ``host:port``  of ``cluster0-20000`` can be ``127.0.0.5:20000`` or ``127.0.0.5:21000``
+if slave uses a different port, the server ``host:port``  of ``cluster0-20000`` can be ``127.0.0.5:20000`` or ``127.0.0.5:21000``
 
 usage
 -----
@@ -156,12 +156,12 @@ choose your config filename::
 
 
 
-following cmds will affect the online running cluster status:
+these commands will affect the online running cluster status:
 
-- start                 <only if master/slave connection is not ok >
-- stop                  <will ask for confirm>
-- reconfigproxy         <only if proxy config is not match with sentinel state>
-- randomkill            <will start it later>
+- start                 (only if master/slave connection is not running)
+- stop                  (will ask for confirmation)
+- reconfigproxy         (only if proxy config is out of date)
+- randomkill            (will start it later)
 - migrate
 
 start cluster::
@@ -261,15 +261,15 @@ it will gen the deploy.py config like this:
 
 .. image:: doc/twemproxy-sentinel-cluster.png
 
-migrante redis instance
+migrate redis instance
 -----------------------
 
 if we have 32 masters in 16 machines
 
-1. dilatancy: move 2*32 intance on 16 machine to 32/64 machines (so we got larger memory)
-2. maintance: one of the machines is down, we have to move data to another machine.
+1. dilatancy: move 2*32 instances on 16 machines to 32/64 machines (larger memory)
+2. maintenance: one of the machines is down, we have to move data to another machine.
 
-here is the steps:
+steps:
 
 - pre_check,
 - force_src_be_slave,
@@ -303,7 +303,7 @@ this command will modify the conf.py::
     cluster0['migration'] = []
     cluster0['migration'].append('cluster0-22000:127.0.0.5:23000:/tmp/r/redis-23000=>cluster0-22000:127.0.0.5:50015:/tmp/r/redis-50015')
 
-and the 'migration' section will auto loaded next time::
+the "migration" section will auto load on next run::
 
     $ ./bin/deploy.py cluster0 status
     2014-02-27 19:24:24,815 [MainThread] [NOTICE] start running: ./bin/deploy.py -v cluster0 status
@@ -317,28 +317,28 @@ and the 'migration' section will auto loaded next time::
     cluster0-22002 [redis:127.0.0.5:22002] <- 127.0.0.5:23002
     cluster0-22003 [redis:127.0.0.5:22003] <- 127.0.0.5:23003
 
-use mon for supervisor of twemproxy
+mon as supervisor of twemproxy
 -----------------------------------
 
 mon: https://github.com/visionmedia/mon
 
 this is optional for redis-mgr:
 
-1. complile mon and put it in ``_binaries/`` dir.
+1. compile mon and put it in ``_binaries/``.
 2. add config::
 
     BINARYS['MON_BINS'] = '_binaries/mon';
 
 3. ./bin/deploy.py cluster0 upgrade_nutcracker
 
-Dependency
-==========
+Dependencies
+============
 
-- pcl: https://github.com/idning/pcl
-- redis-py: https://github.com/andymccurdy/redis-py (<=2.9.0)
-- argcomplete (optional): https://github.com/kislyuk/argcomplete
-- mon (optional) https://github.com/visionmedia/mon
-- if you are using python 2.7.3, you will need this patch to disable noise from threading: http://bugs.python.org/msg158754
+- `pcl <https://github.com/idning/pcl>`_
+- `redis-py <https://github.com/andymccurdy/redis-py>`_ (<=2.9.0)
+- `argcomplete <https://github.com/kislyuk/argcomplete>`_ (optional)
+- `mon <https://github.com/visionmedia/mon>`_ (optional)
+- if you are using python 2.7.3, you will need `this patch <http://bugs.python.org/msg158754>`_ to disable noise from threading
 
 Authors
 =======
@@ -349,7 +349,7 @@ Authors
 TODO
 ====
 
-1. scheduler for many clusters, we will need it! <we can use a shell script>
+1. scheduler for many clusters, we will need it! (we can use a shell script)
 2. monitor ``SLOW LOG``
 3. #live monitor for nutcracker
 4. #nc to get nutcracker status will fail in background::
@@ -368,7 +368,6 @@ TODO
 Graph
 =====
 
-
 - redis
     - mlive_mem
     - mlive_qps
@@ -381,6 +380,3 @@ Graph
 - for cluster and for each instance
 - support more than one cluster.
 - do not need database
-
-https://github.com/idning/redis-mgr
-
