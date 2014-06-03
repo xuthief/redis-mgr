@@ -370,7 +370,7 @@ class Monitor():
         one all porxy, get/set keys and check
         '''
 
-        @common.retryv2(Exception, tries=3, delay=0.5, backoff=1, logfun=logging.debug)
+        @common.retryv2(Exception, tries=4, delay=0.5, backoff=1, logfun=logging.debug)
         def docheck(host, port):
             conn = redis.Redis(host, port)
             prefix = conf.REDIS_MGR_CHECK_PREFIX
