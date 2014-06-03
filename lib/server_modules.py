@@ -311,7 +311,7 @@ sentinel parallel-syncs $server_name 1
             yield msg
 
 class NutCracker(Base):
-    def __init__(self, user, host_port, path, masters):
+    def __init__(self, user, host_port, path, masters, verbose=4):
         Base.__init__(self, 'nutcracker', user, host_port, path)
 
         self.masters = masters
@@ -320,12 +320,13 @@ class NutCracker(Base):
         self.args['pidfile']     = TT('$path/log/nutcracker.pid', self.args)
         self.args['logfile']     = TT('$path/log/nutcracker.log', self.args)
         self.args['status_port'] = self.args['port'] + 1000
+        self.args['verbose']     = verbose
 
-        self.args['startcmd']    = TT('bin/nutcracker -d -c $conf -o $logfile -p $pidfile -s $status_port -v 4', self.args)
+        self.args['startcmd']    = TT('bin/nutcracker -d -c $conf -o $logfile -p $pidfile -s $status_port -v $verbose', self.args)
         self.args['runcmd']      = TT('bin/nutcracker -d -c $conf -o $logfile -p $pidfile -s $status_port', self.args)
 
         if 'MON_BINS' in conf.BINARYS and os.path.exists(conf.BINARYS['MON_BINS']):
-            self.args['startcmd']    = TT('bin/mon -a 60 -d "bin/nutcracker -c $conf -o $logfile -p $pidfile -s $status_port -v 4"', self.args) # put -d at mon
+            self.args['startcmd']    = TT('bin/mon -a 60 -d "bin/nutcracker -c $conf -o $logfile -p $pidfile -s $status_port -v $verbose"', self.args) # put -d at mon
             self.args['runcmd']      = TT('bin/nutcracker -c $conf -o $logfile -p $pidfile -s $status_port', self.args)
 
         self._last_info = None

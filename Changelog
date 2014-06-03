@@ -1,3 +1,10 @@
+- 2014-06-03 17:31:03
+	- fix keys cmd(use sys.stdout.write insteadof print) 
+	- use mon for supervisor of twemproxy
+	- add live_master_slowlog/slowlog cmd, and we can monitor slowlog now
+	- monitor threshold for each cluster 
+	- use '-v 5' for first proxy in each cluster
+
 - 2014-05-12 07:06:07
 	- use hashtag {}
 	- add keys cmd: ./bin/deploy.py cluster0 keys '*' | wc -l

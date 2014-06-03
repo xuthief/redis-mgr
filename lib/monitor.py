@@ -440,12 +440,12 @@ class Monitor():
         log_rotate for nutcracker.
         '''
         t = common.format_time(None, '%Y%m%d%H')
-        for m in self.all_nutcracker:
+        for m in self.all_nutcracker[:1]:
             cmd = 'mv log/nutcracker.log log/nutcracker.log.%s' % t
             m._sshcmd(cmd)
             cmd = "pkill -HUP -f '%s'" % m.args['runcmd']
             m._sshcmd(cmd)
-            cmd = "find log/ -name 'nutcracker.log.2*' -amin +1440 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null" # 1440 min = 1 day
+            cmd = "find log/ -name 'nutcracker.log.2*' -amin +14400 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null" # 14400 min = 10 day
             m._sshcmd(cmd)
 
     def _supervisor(self):

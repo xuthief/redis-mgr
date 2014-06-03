@@ -28,6 +28,10 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
 
         self.all_sentinel = [Sentinel(self.args['user'], hp, path, masters) for hp, path in self.args['sentinel'] ]
         self.all_nutcracker = [NutCracker(self.args['user'], hp, path, masters) for hp, path in self.args['nutcracker'] ]
+
+        self.all_nutcracker = [NutCracker(self.args['user'], hp, path, masters, 5) for hp, path in self.args['nutcracker'][:1] ] # first proxy use '-v 5'
+        self.all_nutcracker +=[NutCracker(self.args['user'], hp, path, masters, 4) for hp, path in self.args['nutcracker'][1:] ]
+
         for m in self.all_nutcracker:
             m.args['cluster_name'] = args['cluster_name']
 
