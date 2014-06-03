@@ -11,7 +11,7 @@ this script will deploy a redis cluster in **10 minutes**, with:
 
 you can deploy/auto-failover/monitor/migrate and perform rolling-upgrades.
 
-with all best practice from our experience(we use **1TB** of cache on production environment)
+with all best practice from our experience (we use **1TB** of cache on production environment)
 
 try it
 ------
