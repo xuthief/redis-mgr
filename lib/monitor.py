@@ -486,6 +486,10 @@ class Monitor():
 
         cron_time = '27 %s * * *' % rdb_hour
         cron.add(cron_time, self.aof_rewrite, use_thread=True)              # every day
+
+        cron_time = '37 %s * * *' % rdb_hour
+        cron.add(cron_time, self.log_rotate, use_thread=True)              # every day
+
         cron.run()
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
