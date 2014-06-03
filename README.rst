@@ -262,7 +262,7 @@ it will gen the deploy.py config like this:
 .. image:: doc/twemproxy-sentinel-cluster.png
 
 migrate redis instance
------------------------
+----------------------
 
 if we have 32 masters in 16 machines
 
@@ -318,7 +318,7 @@ the "migration" section will auto load on next run::
     cluster0-22003 [redis:127.0.0.5:22003] <- 127.0.0.5:23003
 
 mon as supervisor of twemproxy
------------------------------------
+------------------------------
 
 mon: https://github.com/visionmedia/mon
 

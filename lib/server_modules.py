@@ -162,7 +162,22 @@ class RedisServer(Base):
 
         info = [line.split(':', 1) for line in info.split('\r\n') if not line.startswith('#')]
         info = [i for i in info if len(i)>1]
-        return defaultdict(str, info) #this is a defaultdict, be Notice
+        ret = defaultdict(str, info) #this is a defaultdict, be Notice
+        try:
+            ret['_slowlog_per_sec'] = self._slowlog_per_sec()
+        except:
+            pass
+        return ret
+
+    def _slowlog_per_sec(self):
+        CNT = 10
+        conn = redis.Redis(self.args['host'], self.args['port'])
+        ret = conn.execute_command('SLOWLOG', 'GET', CNT)
+        if not ret:
+            return 0
+        timediff = time.time() - ret[-1][1]  # time diff of the first-last slow log.
+        slow_per_sec = 1.0 * CNT / timediff
+        return slow_per_sec
 
     def _ping(self):
         cmd = TT('$REDIS_CLI -h $host -p $port PING', self.args)

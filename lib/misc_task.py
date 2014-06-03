@@ -8,6 +8,7 @@
 from utils import *
 import pprint
 from multiprocessing import Process
+from threading import Thread
 
 class MiscTask():
 
@@ -16,7 +17,7 @@ class MiscTask():
         list keys (match='p-*')
         '''
 
-        class Worker(Process):
+        class Worker(Thread):
             def __init__(self, s):
                 super(Worker, self).__init__()
                 self.s = s

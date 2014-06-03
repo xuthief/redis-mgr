@@ -53,6 +53,10 @@ NUTCRACKER_MONITOR_EXTRA = {
 cluster0 = {
     'cluster_name': 'cluster0',
     'user': 'ning',
+    'REDIS_MONITOR_EXTRA': {
+        'used_cpu_user':              (0, 1),
+        '_slowlog_per_sec':           (0, 1),
+    },
     'sentinel':[
         ('127.0.0.5:29001', '/tmp/r/sentinel-29001'),
         ('127.0.0.5:29002', '/tmp/r/sentinel-29002'),

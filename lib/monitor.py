@@ -106,6 +106,14 @@ class Monitor():
         '''
         self._live_redis('instantaneous_ops_per_sec')
 
+    def live_master_slowlog(self):
+        '''
+        monitor slowlog/second of master
+        '''
+        def format(s):
+            return '%.1f' % s
+        self._live_redis('_slowlog_per_sec', format)
+
     def live_nutcracker_request(self):
         '''
         monitor nutcracker requests/s
@@ -275,6 +283,8 @@ class Monitor():
                 }
             if 'REDIS_MONITOR_EXTRA' in dir(conf):
                 redis_spec.update(conf.REDIS_MONITOR_EXTRA)
+            if 'REDIS_MONITOR_EXTRA' in self.args:
+                redis_spec.update(self.args['REDIS_MONITOR_EXTRA'])
 
             for k, expr in redis_spec.items():
                 if k in info and not match(info[k], expr):
@@ -299,6 +309,8 @@ class Monitor():
             }
             if 'NUTCRACKER_MONITOR_EXTRA' in dir(conf):
                 nutcracker_cluster_spec.update(conf.NUTCRACKER_MONITOR_EXTRA)
+            if 'NUTCRACKER_MONITOR_EXTRA' in self.args:
+                nutcracker_cluster_spec.update(self.args['NUTCRACKER_MONITOR_EXTRA'])
 
             #got info of this cluster
             info = info[self.args['cluster_name']]
@@ -333,6 +345,25 @@ class Monitor():
                 logging.error('config not same: %s vs %s' % (self.all_nutcracker[0], n))
                 logging.debug(base)
                 logging.debug(c)
+
+    def slowlog(self):
+        '''
+        for all redis master, show slow_log in 60 seconds (return 10 at most)
+        '''
+
+        def check(n):
+            CNT = 10
+            conn = redis.Redis(n.args['host'], n.args['port'])
+            ret = conn.execute_command('SLOWLOG', 'GET', CNT)
+            now = time.time()
+            for s in ret:
+                t = s[1]
+                if now - t < 60: #  slowlog in 60 seconds
+                    print s
+
+        for n in self._active_masters():
+            logging.info('checking: %s' % n)
+            check(n)
 
     def check_kv(self):
         '''
