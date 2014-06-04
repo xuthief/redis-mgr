@@ -445,7 +445,9 @@ class Monitor():
             m._sshcmd(cmd)
             cmd = "pkill -HUP -f '%s'" % m.args['runcmd']
             m._sshcmd(cmd)
-            cmd = "find log/ -name 'nutcracker.log.2*' -amin +14400 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null" # 14400 min = 10 day
+
+            log_keep_min = 60 * 24
+            cmd = "find log/ -name 'nutcracker.log.2*' -amin +%d 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null" % log_keep_min
             m._sshcmd(cmd)
 
     def _supervisor(self):
@@ -481,14 +483,14 @@ class Monitor():
         cron.add('* * * * *'   , self.check_proxy_config, use_thread=True)  # every minute, (check_proxy_config may hang, so we use thread)
         cron.add('* * * * *'   , self.check_kv, use_thread=True)            # every minute, (check_kv may use more than 1 minute, so we use thread)
 
+        cron.add('59 * * * *', self.log_rotate, use_thread=True)            # every hour (log_rotate)
+
         cron_time = '0 %s * * *' % rdb_hour
         cron.add(cron_time, self.rdb, use_thread=True)                      # every day
 
         cron_time = '27 %s * * *' % rdb_hour
         cron.add(cron_time, self.aof_rewrite, use_thread=True)              # every day
 
-        cron_time = '37 %s * * *' % rdb_hour
-        cron.add(cron_time, self.log_rotate, use_thread=True)              # every day
 
         cron.run()
 
