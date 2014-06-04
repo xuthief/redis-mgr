@@ -459,7 +459,7 @@ class Monitor():
                 for m in self.all_nutcracker:
                     if not m._alive():
                         logging.warning("%s down, restart it" % m)
-                        m.start()
+                        m.start(timeout=5)
             except Exception, e:
                 logging.warn('we got exception: %s on _supervisor task' % e)
                 logging.exception(e)

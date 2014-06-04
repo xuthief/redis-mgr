@@ -55,7 +55,7 @@ class Base:
         fout.close()
         os.chmod(control_filename, 0755)
 
-    def start(self):
+    def start(self, timeout = 60*5):
         if self._alive():
             logging.warn('%s already running' %(self) )
             return
@@ -63,7 +63,7 @@ class Base:
         logging.debug('starting %s' % self)
         t1 = time.time()
         sleeptime = .5
-        self._run(self._remote_start_cmd(), timeout=5)
+        self._run(self._remote_start_cmd(), timeout=5) #timeout for run cmd
 
         while not self._alive():
             lets_sleep(sleeptime)
@@ -72,11 +72,15 @@ class Base:
             else:
                 sleeptime = 5
                 logging.warn('%s still not alive' % self)
+            if time.time() - t1 > timeout:
+                logging.warn('%s still not alive, Give Up !!! ' % self)
+                logging.error('%s still not alive, Give Up !!! ' % self)
+                return
 
         t2 = time.time()
         logging.info('%s start ok in %.2f seconds' %(self, t2-t1) )
 
-    def stop(self):
+    def stop(self, timeout = 15):
         if not self._alive():
             logging.warn('%s already stop' %(self) )
             return
@@ -85,6 +89,10 @@ class Base:
         t1 = time.time()
         while self._alive():
             lets_sleep()
+            if time.time() - t1 > timeout:
+                logging.warn('%s still not stop, Give Up !!! ' % self)
+                logging.error('%s still not stop, Give Up !!! ' % self)
+                return
         t2 = time.time()
         logging.info('%s stop ok in %.2f seconds' %(self, t2-t1) )
 
@@ -476,9 +484,9 @@ $cluster_name:
 
     def reconfig(self, masters):
         self.masters = masters
-        self.stop()
+        self.stop(timeout = 5)
         self.deploy()
-        self.start()
+        self.start(timeout = 5)
         logging.info('proxy %s:%s is updated' % (self.args['host'], self.args['port']))
 
 
