@@ -5,47 +5,6 @@ from utils import *
 
 PWD = os.path.dirname(os.path.realpath(__file__))
 
-class BenchThread(threading.Thread):
-    def __init__ (self, redis, cmd):
-        threading.Thread.__init__(self)
-        self.redis = redis
-        self.cmd = cmd
-    def run(self):
-        self.redis._sshcmd(self.cmd)
-
-class Benchmark():
-    def nbench(self, cnt=100000):
-        '''
-        run benchmark against nutcracker
-        '''
-        i = 0
-        masters= self._active_masters()
-        for s in self.all_nutcracker:
-            args = copy.deepcopy(s.args)
-            args['cnt'] = cnt
-            cmd = TT('bin/redis-benchmark --csv -h $host -p $port -r 100000 -t set,get -n $cnt -c 100 ', args)
-
-            BenchThread(masters[i], cmd).start()
-            i += 1
-            i %= len(masters)
-
-
-    def mbench(self, cnt=100000):
-        '''
-        run benchmark against redis master
-        '''
-        for s in self._active_masters():
-            args = copy.deepcopy(s.args)
-            args['cnt'] = cnt
-            cmd = TT('bin/redis-benchmark --csv -h $host -p $port -r 100000 -t set,get -n $cnt -c 100 ', args)
-            BenchThread(s, cmd).start()
-
-    def stopbench(self):
-        '''
-        you will need this for stop benchmark
-        '''
-        return self.sshcmd("pkill -f 'bin/redis-benchmark'")
-
 class Monitor():
     def _live_nutcracker(self, what, format_func = lambda x:x):
         for i in xrange(1000):
@@ -170,9 +129,6 @@ class Monitor():
             print 'badline'
             return
 
-        #if js['cluster'] != self.args['cluster_name']:
-            #return
-
         ret['timestr'] = js['timestr']
         def sum_redis(what):
             val = 0
@@ -185,13 +141,11 @@ class Monitor():
         def sum_proxy(what):
             val = 0
             for k,v in js['infos'].items():
-                #print k, v
                 if not k.startswith('[nut') :
                     continue
-                    
+
                 v = v[self.args['cluster_name']]
                 if what in v:
-                    #print k, v[what]
                     val += int(v[what])
             return val
 
@@ -268,7 +222,6 @@ class Monitor():
             infos[str(r)] = r._info_dict()
         self._check_warning(infos)
 
-
         ret = {
             'ts': now,
             'timestr': common.format_time_to_min(now),
@@ -320,7 +273,6 @@ class Monitor():
             for k, expr in redis_spec.items():
                 if k in info and not match(info[k], expr):
                     logging.warn('%s.%s is:\t %s, not in %s' % (node, k, info[k], expr))
-
 
         def check_nutcracker(node, info):
             '''
@@ -431,41 +383,6 @@ class Monitor():
                 logging.warn("check_kv got exception on %s" % n)
                 logging.error("check_kv got exception on %s" % n)
 
-    def upgrade_nutcracker(self):
-        '''
-        upgrade nutcracker instance, support --filter
-        '''
-        masters = self._active_masters()
-
-        i = 0
-        pause_cnt = len(self.all_nutcracker) / 3 + 1
-
-        for m in self.all_nutcracker:
-            if self.cmdline.filter and not strstr(str(m), self.cmdline.filter):
-                logging.notice("Ignore :%s" % m)
-            else:
-                logging.notice("Upgrade :%s" % m)
-                m.reconfig(masters)
-            if i % pause_cnt == 0 and i+1<len(self.all_nutcracker):
-                while 'yes' != raw_input('do you want to continue yes/ctrl-c: '):
-                    pass
-            i+=1
-
-        logging.notice('reconfig all nutcracker Done!')
-
-    def upgrade_sentinel_danger(self):
-        '''
-        this may reset all masert-slave relation at sentinel
-        '''
-        for m in self.all_sentinel:
-            m.stop()
-            m.deploy()
-
-        for m in self.all_sentinel:
-            m.start()
-
-        logging.notice('reconfig all sentinel Done!')
-
     def log_rotate(self):
         '''
         log_rotate for nutcracker.
@@ -484,6 +401,7 @@ class Monitor():
     def _supervisor(self):
         '''
         supervisor for proxy (every 5 seconds)
+        this is useless now!!
         '''
         while True:
             try:

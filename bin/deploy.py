@@ -12,9 +12,9 @@ sys.path.append(os.path.join(WORKDIR, 'conf/'))
 
 from server_modules import *
 from utils import *
-from monitor import Monitor, Benchmark
+from monitor import Monitor
 from migrate import Migrate
-from misc_task import MiscTask
+from misc_task import MiscTask, Benchmark
 from webserver import WebServer
 
 class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
@@ -59,8 +59,6 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
                     if self.args['redis'][i] == src:
                         self.args['redis'][i] = dst
                         logging.info('replace %s as %s' % (src, dst))
-
-        #pprint(self.args)
 
     def _make_redis(self, spec):
         server_name, host, port, path = spec.split(':')
@@ -234,19 +232,6 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         '''
         self._rediscmd('BGREWRITEAOF', conf.RDB_SLEEP_TIME)
 
-    def randomkill(self, cnt=10):
-        '''
-        random kill master every mintue (for test failover)
-        '''
-        cnt = int(cnt)
-        for i in range(cnt):
-            r = random.choice(self._active_masters())
-            logging.notice('%d/%d: will restart %s' % (i, cnt, r))
-            r.stop()
-            time.sleep(80)
-            r.start()
-            time.sleep(60)
-
     def sshcmd(self, cmd):
         '''
         ssh to target machine and run cmd
@@ -265,9 +250,8 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         '''
         ssh to target machine and proxy dir to run cmd
         '''
-        #cmd = 'cp conf/nutcracker.conf conf/nutcracker.conf.%s' % t
         for m in self.all_nutcracker:
-            m._sshcmd(cmd, timeout=5) #backup config first.
+            m._sshcmd(cmd, timeout=5)
 
     def reconfigproxy(self, force=0):
         '''
