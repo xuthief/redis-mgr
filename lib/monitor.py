@@ -182,10 +182,25 @@ class Monitor():
                     val += int(v[what])
             return val
 
+        def sum_proxy(what):
+            val = 0
+            for k,v in js['infos'].items():
+                #print k, v
+                if not k.startswith('[nut') :
+                    continue
+                    
+                v = v[self.args['cluster_name']]
+                if what in v:
+                    #print k, v[what]
+                    val += int(v[what])
+            return val
+
         ret['qps'] = sum_redis('instantaneous_ops_per_sec')
         ret['mem'] = sum_redis('used_memory')/1024/1024
+        ret['slow'] = sum_redis('_slowlog_per_sec')
+        ret['forward_error'] = sum_proxy('forward_error_INC')
 
-        print TT('$timestr ${qps}q/s ${mem}MB', ret)
+        print TT('$timestr ${qps}q/s ${mem}MB ${slow} ${forward_error}', ret)
         sys.stdout.flush()
 
     def history(self, cnt=1):
@@ -197,9 +212,25 @@ class Monitor():
         files.sort()
         for f in files[-cnt:]:
             for line in file(f):
-                self.__print_statlog_line(line)
-                if cnt > 2: #only show first line in each hour
+                try:
+                    self.__print_statlog_line(line)
+                except:
+                    print 'badline'
+
+    def history_hourly(self, cnt=24):
+        '''
+        history monitor info of the cluster
+        '''
+        cnt = int(cnt)
+        files = glob.glob('data/%s/statlog.*'% self.args['cluster_name'])
+        files.sort()
+        for f in files[-cnt:]:
+            for line in file(f):
+                try:
+                    self.__print_statlog_line(line)
                     break
+                except:
+                    print 'badline'
 
     def _monitor(self):
         '''
@@ -277,7 +308,7 @@ class Monitor():
                     'latest_fork_usec':           (0, 500*1000), #500ms
                     'master_link_status':         set(['up']),
                     'rdb_last_bgsave_status':     set(['ok']),
-                    'rdb_last_save_time':         (now-30*60*60, now),
+                    'rdb_last_save_time':         (now-48*60*60, now),
                     #- hit_rate
                     #- slow log
                 }
@@ -359,7 +390,7 @@ class Monitor():
             for s in ret:
                 t = s[1]
                 if now - t < 60: #  slowlog in 60 seconds
-                    print s
+                    print s[1], s[2], ' '.join(s[3])
 
         for n in self._active_masters():
             logging.info('checking: %s' % n)

@@ -234,13 +234,14 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         '''
         self._rediscmd('BGREWRITEAOF', conf.RDB_SLEEP_TIME)
 
-    def randomkill(self):
+    def randomkill(self, cnt=10):
         '''
         random kill master every mintue (for test failover)
         '''
-        while True:
+        cnt = int(cnt)
+        for i in range(cnt):
             r = random.choice(self._active_masters())
-            logging.notice('will restart %s' % r)
+            logging.notice('%d/%d: will restart %s' % (i, cnt, r))
             r.stop()
             time.sleep(80)
             r.start()
@@ -259,6 +260,14 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
             args['host'] = h
             cmd = TT('ssh -n -f $user@$host "$cmd"', args)
             print common.system(cmd)
+
+    def sshcmd_proxy(self, cmd):
+        '''
+        ssh to target machine and proxy dir to run cmd
+        '''
+        #cmd = 'cp conf/nutcracker.conf conf/nutcracker.conf.%s' % t
+        for m in self.all_nutcracker:
+            m._sshcmd(cmd, timeout=5) #backup config first.
 
     def reconfigproxy(self, force=0):
         '''

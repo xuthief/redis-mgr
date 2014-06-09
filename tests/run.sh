@@ -21,8 +21,10 @@ pkill -f './bin/deploy.py'
 
 #test failover
 ./bin/deploy.py $CLUSTER scheduler &
-./bin/deploy.py $CLUSTER randomkill 
-pkill -f './bin/deploy.py'
+./bin/deploy.py $CLUSTER randomkill 5
+
+#should got not error here
+sleep 180
 
 ./bin/deploy.py $CLUSTER stop
-
+pkill -f './bin/deploy.py'
