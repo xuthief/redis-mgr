@@ -1,3 +1,6 @@
+- 2014-06-19 17:56:21
+	- add chart.py, we can view qps/mem/forward_error_INC/hit_rate on chart.
+
 - 2014-06-03 17:31:03
 	- fix keys cmd(use sys.stdout.write insteadof print) 
 	- use mon for supervisor of twemproxy

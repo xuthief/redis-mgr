@@ -77,6 +77,11 @@ def nothrow(ExceptionToCheck=Exception, logger=None):
 def test_nothrow():
     raise Exception('exception: xx')
 
+def parse_time(time_str, fmt='%Y%m%d%H'):
+    ''' return ts '''
+    t = time.strptime(time_str, fmt)
+    return int(time.mktime(t))
+
 if __name__ == "__main__":
     test_nothrow()
 

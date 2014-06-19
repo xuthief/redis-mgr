@@ -11,6 +11,7 @@ PWD = os.path.dirname(os.path.realpath(__file__))
 WORKDIR = os.path.join(PWD,  '../')
 sys.path.append(os.path.join(WORKDIR, 'lib/'))
 sys.path.append(os.path.join(WORKDIR, 'conf/'))
+sys.path.append(os.path.join(WORKDIR, 'bin/'))
 
 from utils import *
 

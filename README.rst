@@ -49,6 +49,13 @@ try it
 
     $ ./bin/deploy.py cluster0 -h
 
+monitor pages
+-------------
+
+(need http://www.google.com/jsapi)
+
+.. image:: doc/redis-mgr-chart.png
+
 config
 ------
 

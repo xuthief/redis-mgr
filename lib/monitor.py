@@ -13,10 +13,13 @@ class Monitor():
                 print header
 
             def get_v(s):
-                info = s._info_dict()[self.args['cluster_name']]
-                if what not in info:
-                    return '-'
-                return format_func(info[what])
+                try:
+                    info = s._info_dict()[self.args['cluster_name']]
+                    if what not in info:
+                        return '-'
+                    return format_func(info[what])
+                except:
+                    return 'xxx'
 
             print ' '.join([ '%5s' % get_v(s) for s in self.all_nutcracker]) + '\t' + common.format_time(None, '%X')
             sys.stdout.flush()
@@ -39,10 +42,13 @@ class Monitor():
                     header = common.to_red(' '.join(['%5s' % s.args['port'] for s in masters]))
                 print header
             def get_v(s):
-                info = s._info_dict()
-                if what not in info:
-                    return '-'
-                return format_func(info[what])
+                try:
+                    info = s._info_dict()
+                    if what not in info:
+                        return '-'
+                    return format_func(info[what])
+                except:
+                    return 'xxx'
             print ' '.join([ '%5s' % get_v(s) for s in masters]) + '\t' + common.format_time(None, '%X')
             sys.stdout.flush()
 
@@ -394,7 +400,7 @@ class Monitor():
             cmd = "pkill -HUP -f '%s'" % m.args['runcmd']
             m._sshcmd(cmd)
 
-            log_keep_min = 60 * 24
+            log_keep_min = 60 * 24 * 2
             cmd = "find log/ -name 'nutcracker.log.2*' -amin +%d 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null" % log_keep_min
             m._sshcmd(cmd)
 
@@ -429,7 +435,7 @@ class Monitor():
         cron = crontab.Cron()
         cron.add('* * * * *'   , self._monitor)                             # every minute
 
-        cron.add('* * * * *'   , self.check_proxy_config, use_thread=True)  # every minute, (check_proxy_config may hang, so we use thread)
+        cron.add('0,10,20,30,40,50 * * * *'   , self.check_proxy_config, use_thread=True)  # every 10 minute, (check_proxy_config may hang, so we use thread)
         cron.add('* * * * *'   , self.check_kv, use_thread=True)            # every minute, (check_kv may use more than 1 minute, so we use thread)
 
         cron.add('59 * * * *', self.log_rotate, use_thread=True)            # every hour (log_rotate)
