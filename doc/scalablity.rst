@@ -34,8 +34,9 @@ we can use `redis-replay <https://github.com/idning/redis/tree/replay>`_ to migr
 
 .. image:: redis-mgr-scale-002.png
 
-we redis-replay is catch up with aof. we can reconfig old twemproxy as a proxy of new cluster. all done:
+we redis-replay is catch up with aof. we can reconfig old twemproxy as a proxy of new cluster.:
 
 .. image:: redis-mgr-scale-003.png
 
+all done, we can now stop the old cluster.
 
