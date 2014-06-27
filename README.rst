@@ -274,7 +274,7 @@ migrate redis instance
 
 if we have 32 masters in 16 machines
 
-1. dilatancy: move 2*32 instances on 16 machines to 32/64 machines (larger memory)
+1. expansion: move 2*32 instances on 16 machines to 32/64 machines (larger memory)
 2. maintenance: one of the machines is down, we have to move data to another machine.
 
 steps:
