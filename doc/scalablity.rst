@@ -7,7 +7,7 @@ for example, we have 2 machines, we can use 8 shards. (4 master and 4 slave in e
 
 when we want a larger cluster with double memory, we add 2 machines, and migrate have of the redis instance to new machines, as following:
 
-.. image:: doc/redis-mgr-scale-001.png
+.. image:: redis-mgr-scale-001.png
 
 
 ok, now we can scale our cluster from 2 machines to 4 machines,
@@ -32,8 +32,10 @@ as following,
 
 we can use `redis-replay <https://github.com/idning/redis/tree/replay>`_ to migrate date (from aof) to new cluster.
 
-.. image:: doc/redis-mgr-scale-002.png
+.. image:: redis-mgr-scale-002.png
 
 we redis-replay is catch up with aof. we can reconfig old twemproxy as a proxy of new cluster. all done:
 
-.. image:: doc/redis-mgr-scale-003.png
+.. image:: redis-mgr-scale-003.png
+
+
