@@ -38,5 +38,5 @@ we redis-replay is catch up with aof. we can reconfig old twemproxy as a proxy o
 
 .. image:: redis-mgr-scale-003.png
 
-all done, we can now stop the old cluster.
+all done, we can now stop the replayer, and stop the old cluster.
 
