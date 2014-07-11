@@ -222,7 +222,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
 
         t = common.format_time(None, '%Y%m%d%H')
         cpy = 'cp data/dump.rdb data/dump.rdb.%s' % t
-        rmv = 'find data/ -mtime +10 -mindepth 1 -maxdepth 1 -exec rm -rf {} \;'
+        rmv = 'find data/ -name \'dump.rdb.2*\' -mtime +10 -mindepth 1 -maxdepth 1 -exec rm -rf {} \;'
         for s in self.all_redis:
             s._sshcmd(cpy)
             time.sleep(conf.RDB_SLEEP_TIME)
