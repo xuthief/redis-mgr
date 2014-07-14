@@ -8,32 +8,58 @@ from cgicommon import *
 
 import utils
 
+#base on http://www.highcharts.com/demo/spline-irregular-time
 html = '''
 <html>
   <head>
-    <script type='text/javascript' src='http://www.google.com/jsapi'></script>
+    <script src="http://www.highcharts.com/lib/jquery-1.7.2.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="http://code.highcharts.com/modules/exporting.js"></script>
     <script type='text/javascript'>
-      google.load('visualization', '1.1', {'packages':['annotationchart']});
-      google.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('date', 'Date');
-        data.addColumn('number', '$cmd');
-        data.addRows([
-          [new Date(2014, 6, 18), 250, ],
-        ]);
 
-        var chart = new google.visualization.AnnotationChart(document.getElementById('chart_div'));
-        var options = {
-            min: 0, 
-            dateFormat: 'yyyy-MM-dd HH:mm'
-        };
+    $(function () {
+        $('#container').highcharts({
+            chart: {
+                type: 'spline'
+            },
+            title: {
+                text: 'redis stat of xxx'
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { // don't display the dummy year
+                    minute: '%Y-%m-%d<br/>%H:%M',
+                    hour: '%Y-%m-%d<br/>%H:%M',
+                    day: '%Y<br/>%m-%d',
+                },
+                title: {
+                    text: 'Date'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'xxx'
+                },
+                min: 0
+            },
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %H:%M}: {point.y:.2f}'
+            },
 
-        chart.draw(data, options);
-      }
+            series: [{
+                name: 'xxx',
+                data: [
+                    [new Date(2014, 6, 18), 250, ],
+                ]
+            }]
+        });
+    });
+
     </script>
   </head>
   <body>
+
     <pre>
     usage     : /chart.py?cluster=cluster0&cmd=mem_fragmentation_ratio&period=hour&start=2014060100
     peirod    : hour/min
@@ -42,7 +68,8 @@ html = '''
                 latest_fork_usec /rdb_last_bgsave_time_sec /aof_last_rewrite_time_sec
                 mem_fragmentation_ratio /hit_rate /server_err_INC /server_timedout_INC /client_err_INC
     </pre>
-    <div id='chart_div' style='width: 90%; height: 500px;'></div>
+    <div id='container' style='width: 90%; height: 500px;'></div>
+
   </body>
 </html>
 '''
@@ -115,7 +142,7 @@ def __print_statlog_line(line, args):
     ret['server_timedout_INC'] = sum_proxy('server_timedout_INC')
     ret['client_err_INC']      = sum_proxy('client_err_INC')
 
-    print '[new Date(%d), %f ],' % (ret['ts'] * 1000, ret[args['cmd']])
+    print '[%d, %f ],' % (ret['ts'] * 1000, ret[args['cmd']])
 
 def json_data(args):
     '''
@@ -157,8 +184,11 @@ def main():
     print "Content-Type: text/html"
     print ""
     head, tail = html.split('[new Date(2014, 6, 18), 250, ],')
-    print TT(head, args)
+    #print TT(head, args)
+    #json_data(args)
+    #print TT(tail, args)
+    print head
     json_data(args)
-    print TT(tail, args)
+    print tail
 
 main()
