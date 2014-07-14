@@ -127,7 +127,7 @@ class Monitor():
 
             time.sleep(60)
 
-    def __print_statlog_line(self, line):
+    def __parse_statlog_line(self, line):
         ret = {}
         try:
             js = common.json_decode(line)
@@ -159,7 +159,10 @@ class Monitor():
         ret['mem'] = sum_redis('used_memory')/1024/1024
         ret['slow'] = sum_redis('_slowlog_per_sec')
         ret['forward_error'] = sum_proxy('forward_error_INC')
+        return ret
 
+    def __print_statlog_line(self, line):
+        ret = self.__parse_statlog_line(line)
         print TT('$timestr ${qps}q/s ${mem}MB ${slow} ${forward_error}', ret)
         sys.stdout.flush()
 
@@ -191,6 +194,33 @@ class Monitor():
                     break
                 except:
                     print 'badline'
+
+    def history_daily(self, start=''):
+        '''
+        history monitor info of the cluster
+        '''
+        if not start:
+            start = common.format_time(time.time()-3600*24, '%Y%m%d')
+        start = parse_time(start, '%Y%m%d')
+        end = parse_time(common.format_time(None, '%Y%m%d'), '%Y%m%d')   #today
+
+        logging.notice('history_daily %s-%s' %(start, end))
+
+        for d in range(start, end, 3600*24):
+            sum_err = 0
+            for t in range(d, d+3600*24, 3600):
+                timestr = common.format_time_to_hour(t)
+                filename = 'data/%s/statlog.%s' % (self.args['cluster_name'], timestr)
+
+                for line in file(filename):
+                    try:
+                        stat = self.__parse_statlog_line(line)
+                        err = int(stat['forward_error'])
+                        if err > 0:
+                            sum_err += err
+                    except:
+                        print 'badline'
+            print common.format_time_to_hour(d)[:-2], sum_err
 
     def _monitor(self):
         '''
