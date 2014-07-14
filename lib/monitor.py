@@ -397,7 +397,7 @@ class Monitor():
         for m in self.all_nutcracker[:1]:
             cmd = 'mv log/nutcracker.log log/nutcracker.log.%s' % t
             m._sshcmd(cmd)
-            cmd = "pkill -HUP -f '%s'" % m.args['runcmd']
+            cmd = "pkill -HUP -f '^%s'" % m.args['runcmd']
             m._sshcmd(cmd)
 
             log_keep_min = 60 * 24 * 2

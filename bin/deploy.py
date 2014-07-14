@@ -221,9 +221,13 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         time.sleep(conf.RDB_SLEEP_TIME)
 
         t = common.format_time(None, '%Y%m%d%H')
-        cmd = 'cp data/dump.rdb data/dump.rdb.%s' % t
+        cpy = 'cp data/dump.rdb data/dump.rdb.%s' % t
+        rmv = "find data/ -name 'dump.rdb.2*' -mtime +60 -mindepth 1 -maxdepth 1 -exec rm -rf {} \;"
+
         for s in self.all_redis:
-            s._sshcmd(cmd)
+            s._sshcmd(cpy)
+            #time.sleep(conf.RDB_SLEEP_TIME)
+            s._sshcmd(rmv)
             time.sleep(conf.RDB_SLEEP_TIME)
 
     def aof_rewrite(self):
