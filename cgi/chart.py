@@ -12,12 +12,25 @@ import utils
 html = '''
 <html>
   <head>
+    <title>redis stat</title>
     <script src="http://www.highcharts.com/lib/jquery-1.7.2.js"></script>
     <script src="http://code.highcharts.com/highcharts.js"></script>
     <script src="http://code.highcharts.com/modules/exporting.js"></script>
+    <style type="text/css">
+        .current {background-color:yellow; text-decoration: none;}
+    </style>
+
+
     <script type='text/javascript'>
 
     $(function () {
+
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
         $('#container').highcharts({
             chart: {
                 type: 'spline'
@@ -56,18 +69,105 @@ html = '''
         });
     });
 
+function get_qs() {
+    var pairs = window.location.search.substring(1).split("&"), obj = {}, pair;
+
+    for (var i in pairs) {
+        if (pairs[i] === "")
+            continue;
+        pair = pairs[i].split("=");
+        obj[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+    }
+    return obj;
+}
+
+function _to_qs(obj) {
+    return Object.keys(obj).reduce(function(a,k){a.push(k+'='+encodeURIComponent(obj[k]));return a},[]).join('&')
+}
+
+function set_qs(obj) {
+    url = window.location.pathname + '?' + _to_qs(obj);
+    window.location=url;
+    return false;
+}
+
+$(function () {
+    $('#cluster_nav a').click(function() {
+        qs = get_qs();
+        qs['cluster'] = this.id;
+        return set_qs(qs);
+    });
+
+    $('#query_nav a').click(function() {
+        qs = get_qs();
+        qs['query'] = this.id;
+        return set_qs(qs);
+    });
+
+    $('#period_nav a').click(function() {
+        qs = get_qs();
+        qs['period'] = this.id;
+        return set_qs(qs);
+    });
+
+    $('#start_nav a').click(function() {
+        qs = get_qs();
+        qs['start'] = this.id;
+        return set_qs(qs);
+    });
+
+    //mark current
+    qs = get_qs();
+    $('#cluster_nav a').each(function() { if (this.id == qs['cluster']){ $(this).addClass('current'); } });
+    $('#query_nav a').each(function()   { if (this.id == qs['query']){ $(this).addClass('current'); } });
+    $('#period_nav a').each(function()  { if (this.id == qs['period']){ $(this).addClass('current'); } });
+    $('#start_nav a').each(function()   { if (this.id == qs['start']){ $(this).addClass('current'); } });
+
+});
+
     </script>
   </head>
   <body>
 
     <pre>
-    usage     : /chart.py?cluster=cluster0&cmd=mem_fragmentation_ratio&period=hour&start=2014060100
-    peirod    : hour/min
-    start/end : in format '2014060110'
-    cmd       : qps /mem /keys /_slowlog_per_sec /client_connections /forward_error_INC 
-                latest_fork_usec /rdb_last_bgsave_time_sec /aof_last_rewrite_time_sec
-                mem_fragmentation_ratio /hit_rate /server_err_INC /server_timedout_INC /client_err_INC
+    usage     : /chart.py?cluster=cluster0&query=mem_fragmentation_ratio&period=hour&start=2014060100&end=2014060200
     </pre>
+    <div id="cluster_nav" style="width:100%;">
+    cluster:
+        <a id="cluster0" href="">   cluster0 </a>|
+        <a id="cluster1" href="">   cluster1 </a>|
+        <a id="cluster2" href="">   cluster2 </a>|
+    </div>
+    <div id="query_nav" style="width:100%;">
+    query:
+        <a id="qps"                                      href="">   qps                         </a>|
+        <a id="mem"                                      href="">   mem                         </a>|
+        <a id="keys"                                     href="">   keys                        </a>|
+        <a id="_slowlog_per_sec"                         href="">   _slowlog_per_sec            </a>|
+        <a id="client_connections"                       href="">   client_connections          </a>|
+        <a id="forward_error_INC"                        href="">   forward_error_INC           </a>|
+        <a id="latest_fork_usec"                         href="">   latest_fork_usec            </a>|
+        <a id="rdb_last_bgsave_time_sec"                 href="">   rdb_last_bgsave_time_sec    </a>|
+        <a id="aof_last_rewrite_time_sec"                href="">   aof_last_rewrite_time_sec   </a>|
+        <a id="mem_fragmentation_ratio"                  href="">   mem_fragmentation_ratio     </a>|
+        <a id="hit_rate"                                 href="">   hit_rate                    </a>|
+        <a id="server_err_INC"                           href="">   server_err_INC              </a>|
+        <a id="server_timedout_INC"                      href="">   server_timedout_INC         </a>|
+        <a id="client_err_INC"                           href="">   client_err_INC              </a>|
+
+    </div>
+
+    <div id="period_nav" style="width:100%;">
+    period: <a id="hour" href=""> hour </a>|
+           <a id="min" href=""> min </a>|
+    </div>
+
+    <div id="start_nav" style="width:100%;">
+    start:
+
+    {start_list}
+    </div>
+
     <div id='container' style='width: 90%; height: 500px;'></div>
 
   </body>
@@ -132,7 +232,7 @@ def __print_statlog_line(line, args):
     ret['aof_last_rewrite_time_sec'] = sum_redis('aof_last_rewrite_time_sec') / cnt
     ret['mem_fragmentation_ratio']   = sum_redis('mem_fragmentation_ratio') / cnt
 
-    hit = sum_redis('keyspace_hits') 
+    hit = sum_redis('keyspace_hits')
     miss = sum_redis('keyspace_misses')
     ret['hit_rate'] = hit / (hit+miss)
 
@@ -142,7 +242,7 @@ def __print_statlog_line(line, args):
     ret['server_timedout_INC'] = sum_proxy('server_timedout_INC')
     ret['client_err_INC']      = sum_proxy('client_err_INC')
 
-    print '[%d, %f ],' % (ret['ts'] * 1000, ret[args['cmd']])
+    print '[%d, %f ],' % (ret['ts'] * 1000, ret[args['query']])
 
 def json_data(args):
     '''
@@ -169,7 +269,7 @@ def main():
 
     args = {
         'cluster' : getQS('cluster', 'cluster0'),
-        'cmd'     : getQS('cmd', 'qps'),
+        'query'   : getQS('query', 'qps'),
         'period'  : getQS('period', 'min'),
         'start'   : getQS('start', default_start),
         'end'     : getQS('end', default_end),
@@ -179,16 +279,20 @@ def main():
 
         hours = (utils.parse_time(args['end']) - utils.parse_time(args['start']) ) / 3600
         print 'please use period=hour for %d hours of data' % hours
-        return 
+        return
+
+    start_list = [
+        common.format_time_to_hour(time.time() - 3600*24*7),
+        common.format_time_to_hour(time.time() - 3600*24),
+        common.format_time_to_hour(time.time() - 3600* 2 ),
+    ]
+    start_list = '\n'.join (['<a id="%s" href=""> %s </a>|' %(i, i) for i in start_list])
 
     print "Content-Type: text/html"
     print ""
     head, tail = html.split('[new Date(2014, 6, 18), 250, ],')
-    #print TT(head, args)
-    #json_data(args)
-    #print TT(tail, args)
     print head
     json_data(args)
-    print tail
+    print tail.replace('{start_list}', start_list)
 
 main()
