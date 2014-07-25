@@ -7,8 +7,8 @@ from pprint import pprint
 
 PWD = os.path.dirname(os.path.realpath(__file__))
 WORKDIR = os.path.join(PWD,  '../')
-sys.path.append(os.path.join(WORKDIR, 'lib/'))
-sys.path.append(os.path.join(WORKDIR, 'conf/'))
+sys.path.insert(0, os.path.join(WORKDIR, 'lib/'))
+sys.path.insert(0, os.path.join(WORKDIR, 'conf/'))
 
 from server_modules import *
 from utils import *
