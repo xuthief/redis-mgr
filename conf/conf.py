@@ -31,6 +31,7 @@ BINARYS = {
 }#TODO: check it
 
 BINARYS['MON_BINS'] = '_binaries/mon';
+BINARYS['REDIS_REPLAY_AOF'] = '_binaries/redis-replay-aof'
 
 REDIS_MGR_CHECK_PREFIX = 'redis-mgr-check-'
 

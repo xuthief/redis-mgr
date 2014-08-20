@@ -60,6 +60,16 @@ def system_with_timeout(cmd, log_fun=logging.info, timeout=60*60*24*30):
     r = p.stdout.read()
     return r
 
+def piperun(cmd, log_fun=logging.info):
+    if log_fun: log_fun(cmd)
+    from subprocess import Popen, PIPE
+    p = Popen(cmd, shell=True, bufsize = 1024, stdout=PIPE, stderr=PIPE, close_fds=True)
+
+    for line in iter(p.stdout.readline, b''):
+        if not line:
+            return
+        yield line.strip()
+
 def nothrow(ExceptionToCheck=Exception, logger=None):
     def deco_retry(f):
         def f_retry(*args, **kwargs):

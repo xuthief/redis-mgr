@@ -137,7 +137,6 @@ class MiscTask():
             r.start()
             time.sleep(60)
 
-
 class BenchThread(threading.Thread):
     def __init__ (self, redis, cmd):
         threading.Thread.__init__(self)
@@ -145,7 +144,6 @@ class BenchThread(threading.Thread):
         self.cmd = cmd
     def run(self):
         self.redis._sshcmd(self.cmd)
-
 
 class Benchmark():
     def nbench(self, cnt=100000):

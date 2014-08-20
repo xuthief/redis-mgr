@@ -302,6 +302,9 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
                 logging.warn('we got exception: %s on failover task' % e)
                 logging.exception(e)
 
+    def _eval_cluster(self, c):
+        return eval('Cluster(conf.%s, None)' % c)
+
 def discover_op():
     methods = inspect.getmembers(Cluster, predicate=inspect.ismethod)
     sets = [m[0] for m in methods if not m[0].startswith('_')]

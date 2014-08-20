@@ -141,3 +141,71 @@ class Migrate():
                 logging.error('exception: %s ' %e )
                 return
 
+    def replay_aof(self, dst, prefix):
+        '''
+        replay aof from current cluster to dst cluster, watch if it's catch up
+
+        replay cmd:
+            redis-replay-aof --pipe_cmds 100 --file data/appendonly.aof --dest 127.1:4200 --filter prefix > log/1
+        we will deploy redis-replay-aof to ~/ first.
+
+        '''
+
+        for s in self._active_masters():
+            s.args['replay_bin'] = conf.BINARYS['REDIS_REPLAY_AOF']
+            cmd = TT('rsync -ravP $replay_bin $user@$host:~/ 1>/dev/null 2>/dev/null', s.args)
+            s._run(cmd)
+
+        # we will use a half of the dest nutcrackers
+        dst_cluster = self._eval_cluster(dst)
+        nutcrackers = dst_cluster.all_nutcracker[::2]
+        self.nutcrackers_select_idx = 0
+        def choice_nut():
+            self.nutcrackers_select_idx = (self.nutcrackers_select_idx + 1) % len(nutcrackers)
+            return nutcrackers[self.nutcrackers_select_idx]
+
+        class Replayer(threading.Thread):
+            def __init__ (self, src_redis, dst_nut):
+                threading.Thread.__init__(self)
+                self.src_redis = src_redis
+                self.dst_nut = dst_nut
+                self.delay = -1
+
+            def run(self):
+                n = self.dst_nut
+                host = n.host()
+                port = n.port()
+
+                src_path = self.src_redis.args['path']
+                if prefix:
+                    cmd = TT('~/redis-replay-aof --pipe_cmds 100 --file $src_path/data/appendonly.aof --dest $host:$port --filter $prefix', locals())
+                else:
+                    cmd = TT('~/redis-replay-aof --pipe_cmds 100 --file $src_path/data/appendonly.aof --dest $host:$port', locals())
+
+                remotecmd = self.src_redis._remote_cmd(cmd, chdir=False)
+                for line in piperun(remotecmd):
+                    logging.debug(line)
+                    if not strstr(line, 'diff:'):
+                        continue
+                    #progress: [scanned:0] [processed:0] [skipped:0] [unsupported:0] [filesize:0] [postion:0] [diff:0]
+                    x = line.split()[-1]
+
+                    try:
+                        self.delay = int(x.replace('[diff:', '').replace(']', ''))
+                    except:
+                        self.deplay = -2
+
+                self.delay = -3  # remote replayer is killed
+
+        replayers = []
+        for s in self._active_masters():
+            n = choice_nut()
+            replayer = Replayer(s, n)
+            replayer.start()
+            replayers.append(replayer)
+
+        while True:
+            delays = ' '.join([common.format_size(r.delay) for r in replayers])
+            print delays
+            lets_sleep(2)
+

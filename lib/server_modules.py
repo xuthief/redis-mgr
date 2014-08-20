@@ -149,6 +149,11 @@ class Base:
         logging.debug('return : [%d] [%s] ' % (len(ret), common.shorten(ret)) )
         return ret
 
+    def host(self):
+        return self.args['host']
+
+    def port(self):
+        return self.args['port']
 
 class RedisServer(Base):
     def __init__(self, user, host_port, path):
