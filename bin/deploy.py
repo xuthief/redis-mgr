@@ -230,6 +230,17 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
             s._sshcmd(rmv)
             time.sleep(conf.RDB_SLEEP_TIME)
 
+    def clean_rdb(self):
+        '''
+        clean rdb in all redis instance,
+        '''
+
+        rmv = "find data/ -name 'dump.rdb.2*' -mtime +60 -mindepth 1 -maxdepth 1 -exec rm -rf {} \;"
+
+        for s in self.all_redis:
+            s._sshcmd(rmv)
+            time.sleep(5)
+
     def aof_rewrite(self):
         '''
         do aof_rewrite in all redis instance

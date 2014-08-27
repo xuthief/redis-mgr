@@ -57,7 +57,7 @@ html = '''
             },
             tooltip: {
                 headerFormat: '<b>{series.name}</b><br>',
-                pointFormat: '{point.x: %H:%M}: {point.y:.2f}'
+                pointFormat: '{point.x: %Y-%m-%d %H:%M}: {point.y:.2f}'
             },
 
             series: [{
@@ -137,6 +137,9 @@ $(function () {
         <a id="cluster0" href="">   cluster0 </a>|
         <a id="cluster1" href="">   cluster1 </a>|
         <a id="cluster2" href="">   cluster2 </a>|
+        <a id="cluster5" href="">   cluster5 </a>|
+        <a id="cluster6" href="">   cluster6 </a>|
+        <a id="cluster9" href="">   cluster9 </a>|
     </div>
     <div id="query_nav" style="width:100%;">
     query:
@@ -234,7 +237,12 @@ def __print_statlog_line(line, args):
 
     hit = sum_redis('keyspace_hits')
     miss = sum_redis('keyspace_misses')
-    ret['hit_rate'] = hit / (hit+miss)
+    #print hit, miss
+
+    if hit+miss > 0:
+        ret['hit_rate'] = hit / (hit+miss)
+    else :
+        ret['hit_rate'] = 0
 
     ret['keys'] = sum_redis_keys()
 
@@ -251,16 +259,19 @@ def json_data(args):
     start_ts = utils.parse_time(args['start'])
     end_ts = utils.parse_time(args['end']) + 3600
     for t in range(start_ts, end_ts, 3600):
-        timestr = common.format_time_to_hour(t)
-        f = 'data/%s/statlog.%s' % (args['cluster'], timestr )
+        try:
+            timestr = common.format_time_to_hour(t)
+            f = 'data/%s/statlog.%s' % (args['cluster'], timestr )
 
-        for line in file(f):
-            try:
-                __print_statlog_line(line, args)
-                if (args['period']) == 'hour':
-                    break;
-            except:
-                pass
+            for line in file(f):
+                try:
+                    __print_statlog_line(line, args)
+                    if (args['period']) == 'hour':
+                        break;
+                except:
+                    pass
+        except:
+            pass
 
 @nothrow(IOError)
 def main():

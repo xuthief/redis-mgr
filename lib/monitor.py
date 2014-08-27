@@ -297,7 +297,7 @@ class Monitor():
                     'latest_fork_usec':           (0, 500*1000), #500ms
                     'master_link_status':         set(['up']),
                     'rdb_last_bgsave_status':     set(['ok']),
-                    'rdb_last_save_time':         (now-48*60*60, now),
+                    'rdb_last_save_time':         (now-50*60*60, now),
                     #- hit_rate
                     #- slow log
                 }

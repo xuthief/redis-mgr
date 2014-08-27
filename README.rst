@@ -24,7 +24,7 @@ try it
     pip install -e git://github.com/kislyuk/argcomplete.git#egg=argcomplete
     git clone https://github.com/idning/redis-mgr.git
 
-1. compile ``redis`` and ``twemproxy`` and put them under ``_binaries/`` dir::
+1. compile ``redis`` and ``twemproxy`` and put them under ``_binaries/`` dir(you may need ``cp redis-server redis-sentinel``)::
 
     $ ll _binaries/
     total 19M
