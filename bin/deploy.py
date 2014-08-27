@@ -378,10 +378,16 @@ def main():
         help=gen_op_help())
     parser.add_argument('cmd', nargs='*', help='the redis/ssh cmd like "INFO"')
     parser.add_argument('--filter', help="filter of redis/proxy instance", default='')
+    parser.add_argument('--sleep', help="sleep time", type=int, default=0)
 
     LOGPATH = os.path.join(WORKDIR, 'log/deploy.log')
     args = common.parse_args2(LOGPATH, parser)
+
     common.update_logging_level(logging.root, logfile_level=logging.DEBUG)
+
+    if args.sleep:
+        conf.RDB_SLEEP_TIME = args.sleep
+
     if args.cmd:
         eval('Cluster(conf.%s, args).%s(%s)' % (args.target, args.op, '*args.cmd') )
     else:
