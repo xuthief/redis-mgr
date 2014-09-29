@@ -3,7 +3,7 @@ deploy.py
 
 .. image:: doc/twemproxy-sentinel-cluster.png
 
-this script will deploy a redis cluster in **10 minutes**, with:
+this script will deploy a redis cluster(2-128 instances) in **10 minutes**, with:
 
 - redis
 - redis-sentinel
@@ -48,11 +48,12 @@ try it
 5. run::
 
     $ ./bin/deploy.py cluster0 -h
+    $ ./bin/deploy.py cluster0 deploy
+    $ ./bin/deploy.py cluster0 start
+    $ ./bin/deploy.py cluster0 scheduler  (run this in screen or somehow on background)
 
 monitor pages
 -------------
-
-(need http://www.google.com/jsapi)
 
 .. image:: doc/redis-mgr-chart.png
 
@@ -365,8 +366,8 @@ TODO
       nohup ./bin/deploy.py cluster0 scheduler  &
 
    we use telnetlib instead
-5. migrate of redis instance
-6. migrate data over cluster.
+5. #migrate of redis instance
+6. #migrate data over cluster.
 7. #a live command for cluster overview info(qps, mem, hit-rate)
 8. make start cmd reentrant(slaveof cmd)
 9. add ``max-mem`` config. on migration, makesure the max-mem config the same.

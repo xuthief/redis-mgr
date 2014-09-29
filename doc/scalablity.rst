@@ -30,7 +30,12 @@ as following,
 - old cluster: 2 machines with 4 shards,
 - new cluster: 4 machines with 8 shards,
 
-we can use `redis-replay <https://github.com/idning/redis/tree/replay>`_ to migrate date (from aof) to new cluster.
+we can use::
+
+    ./bin/deploy.py cluster0 replay_aof cluster1 ''
+
+to migrate date (from aof) to new cluster.  (this need `redis-replay-aof <https://github.com/cen-li/redis/tree/redis-2.8.3_replay-aof/src>`_ , see also: `cen-li's blog <http://cen-li.github.io/redis-replay-aof.html>`_)
+
 
 .. image:: redis-mgr-scale-002.png
 
@@ -39,4 +44,7 @@ we redis-replay is catch up with aof. we can reconfig old twemproxy as a proxy o
 .. image:: redis-mgr-scale-003.png
 
 all done, we can now stop the replayer, and stop the old cluster.
+
+
+
 

@@ -181,7 +181,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
 
     def sentinel_cmd_reset(self, pattern):
         '''
-        run redis command against ONE sentinel instance, 'reset <pattern>'
+        reset master info at sentinel, run against ALL sentinel instance, 'reset <pattern>'
         '''
         #TODO: should we do this on every sentinel or not? I think so
         #if we do reset to only one sentinel, and the old node start again, it will be slave.
@@ -190,7 +190,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
 
     def sentinel_cmd_failover(self, master):
         '''
-        run redis command against ONE sentinel instance, 'failover <master name>'
+        force a master-slave switch, run against ONE sentinel instance, 'failover <master name>'
         '''
         sentinel = self._get_available_sentinel()
         print sentinel.failover(master)
