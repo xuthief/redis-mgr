@@ -136,9 +136,9 @@ class Base:
         args = copy.deepcopy(self.args)
         args['cmd'] = raw_cmd
         if chdir:
-            return TT('ssh -n -f $user@$host "cd $path && $cmd"', args)
+            return TT('ssh -o "StrictHostKeyChecking no" -n -f $user@$host "cd $path && $cmd"', args)
         else:
-            return TT('ssh -n -f $user@$host "$cmd"', args)
+            return TT('ssh -o "StrictHostKeyChecking no" -n -f $user@$host "$cmd"', args)
 
     def _run(self, raw_cmd, timeout=60*60*24*30):
         #ret = common.system(raw_cmd, logging.debug)

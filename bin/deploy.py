@@ -258,7 +258,7 @@ class Cluster(object, Monitor, Benchmark, WebServer, Migrate, MiscTask):
         args['cmd'] = cmd
         for h in hosts:
             args['host'] = h
-            cmd = TT('ssh -n -f $user@$host "$cmd"', args)
+            cmd = TT('ssh -o "StrictHostKeyChecking no" -n -f $user@$host "$cmd"', args)
             print common.system(cmd)
 
     def sshcmd_proxy(self, cmd):
